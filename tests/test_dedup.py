@@ -62,3 +62,54 @@ def test_prune_removes_entries_older_than_retention():
     dd.mark(state, [cand("new", "https://new.example")], "rejected", NOW)
     dd.prune(state, NOW)
     assert list(state["items"]) == ["url:new.example"]
+
+
+def test_save_state_writes_compact_json_and_creates_parent(tmp_path):
+    state = dd.empty_state()
+    dd.mark(state, [cand("A", "https://a.example")], "published", NOW)
+    target = tmp_path / "assets" / "processed_urls.json"
+    dd.save_state(target, state)
+    raw = target.read_text(encoding="utf-8")
+    assert len(raw.splitlines()) == 1  # JSON nén gọn trên 1 dòng
+    assert dd.load_state(target) == state
+
+
+def test_prune_rotates_expired_entries_to_gzip_and_merges_same_month(tmp_path):
+    import gzip
+    import json
+
+    old1 = datetime(2026, 8, 10, 0, 0, tzinfo=timezone.utc)
+    old2 = datetime(2026, 8, 20, 0, 0, tzinfo=timezone.utc)
+
+    state = dd.empty_state()
+    dd.mark(state, [cand("old1", "https://old1.example")], "rejected", old1)
+    dd.mark(state, [cand("new", "https://new.example")], "published", NOW)
+    dd.prune(state, NOW, archive_dir=tmp_path)
+    assert list(state["items"]) == ["url:new.example"]
+
+    # Xoay vòng lần 2 cùng tháng phải gộp vào file cũ, không mất dữ liệu trước đó.
+    dd.mark(state, [cand("old2", "https://old2.example")], "rejected", old2)
+    dd.prune(state, NOW, archive_dir=tmp_path)
+
+    archive = tmp_path / "processed_urls-2026-08.json.gz"
+    assert archive.exists()
+    data = json.loads(gzip.decompress(archive.read_bytes()).decode("utf-8"))
+    assert sorted(data["items"]) == ["url:old1.example", "url:old2.example"]
+
+
+def test_prune_caps_active_items_and_archive_count(tmp_path):
+    state = dd.empty_state()
+    for i in range(4):
+        when = NOW - timedelta(hours=i)
+        dd.mark(state, [cand(f"t{i}", f"https://ex{i}.example")], "rejected", when)
+    dd.prune(state, NOW, archive_dir=tmp_path, max_active=2, max_archives=2)
+    assert sorted(state["items"]) == ["url:ex0.example", "url:ex1.example"]
+
+    # Tạo thêm 3 tháng cũ để kiểm tra giới hạn max_archives=2.
+    for month in (1, 2, 3):
+        old = datetime(2026, month, 15, tzinfo=timezone.utc)
+        dd.mark(state, [cand(f"m{month}", f"https://m{month}.example")], "rejected", old)
+    dd.prune(state, NOW, archive_dir=tmp_path, max_active=2, max_archives=2)
+    archives = sorted(p.name for p in tmp_path.glob("processed_urls-*.json.gz"))
+    assert len(archives) == 2
+    assert archives == ["processed_urls-2026-03.json.gz", "processed_urls-2026-11.json.gz"]

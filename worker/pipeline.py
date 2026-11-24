@@ -23,7 +23,8 @@ log = logging.getLogger(__name__)
 
 LOOKBACK = timedelta(hours=24)
 VN_TZ = ZoneInfo("Asia/Ho_Chi_Minh")
-STATE_PATH = ROOT / "processed_urls.json"
+ASSETS_DIR = ROOT / "assets"
+STATE_PATH = ASSETS_DIR / "processed_urls.json"
 OUT_DIR = ROOT / "out"
 TELEGRAM_MANIFEST = "telegram.json"
 
@@ -39,7 +40,7 @@ def run_generate(
     # Xóa manifest cũ để `send` không gửi lại tin của lần chạy trước khi hôm nay không có bài.
     (OUT_DIR / TELEGRAM_MANIFEST).unlink(missing_ok=True)
     state = dd.load_state(STATE_PATH)
-    dd.prune(state, now)
+    dd.prune(state, now, archive_dir=STATE_PATH.parent)
 
     raw = fetch_all(session, now - LOOKBACK, settings.github_token)
     fresh = dd.dedup(raw, state, now)

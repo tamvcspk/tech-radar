@@ -1,4 +1,4 @@
-"""Dedup và trạng thái (processed_urls.json).
+"""Dedup và trạng thái (assets/processed_urls.json + xoay vòng file nén .json.gz theo tháng).
 
 Khóa nhận diện một mục:
 - URL chuẩn hóa (bỏ fragment, www, dấu / cuối, tham số tracking; giữ các query param còn lại như ?id=, ?v=).
@@ -8,8 +8,10 @@ Khóa nhận diện một mục:
 
 from __future__ import annotations
 
+import gzip
 import json
-from datetime import datetime, timedelta
+from collections import defaultdict
+from datetime import datetime, timedelta, timezone
 from difflib import SequenceMatcher
 from pathlib import Path
 from urllib.parse import parse_qsl, urlencode, urlsplit
@@ -17,8 +19,12 @@ from urllib.parse import parse_qsl, urlencode, urlsplit
 from .models import Candidate
 
 RETENTION_DAYS = 60
+MAX_ACTIVE_ITEMS = 5000  # trần số khóa trong file hiện hành để không phình vô hạn
+MAX_ARCHIVE_FILES = 12  # giữ tối đa 12 file nén theo tháng (1 năm)
 TITLE_WINDOW_DAYS = 7
 TITLE_SIMILARITY = 0.85
+ARCHIVE_PREFIX = "processed_urls-"
+ARCHIVE_SUFFIX = ".json.gz"
 
 
 TRACKING_PARAMS = {"utm", "ref", "ref_src", "fbclid", "gclid", "mc_cid", "mc_eid", "igshid"}
@@ -72,17 +78,65 @@ def load_state(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def _dump_compact(data: dict) -> str:
+    return json.dumps(data, ensure_ascii=False, separators=(",", ":"), sort_keys=True) + "\n"
+
+
 def save_state(path: Path, state: dict) -> None:
-    path.write_text(json.dumps(state, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(_dump_compact(state), encoding="utf-8")
 
 
-def prune(state: dict, now: datetime) -> None:
+def _archive_expired(expired: dict[str, dict], archive_dir: Path, max_archives: int) -> None:
+    """Xoay vòng mục hết hạn vào file nén processed_urls-YYYY-MM.json.gz và giới hạn số file lưu."""
+    if not expired:
+        return
+    archive_dir.mkdir(parents=True, exist_ok=True)
+    by_month: dict[str, dict[str, dict]] = defaultdict(dict)
+    for key, entry in expired.items():
+        seen = datetime.fromisoformat(entry["seen_at"]).astimezone(timezone.utc)
+        by_month[seen.strftime("%Y-%m")][key] = entry
+
+    for month, entries in by_month.items():
+        archive_path = archive_dir / f"{ARCHIVE_PREFIX}{month}{ARCHIVE_SUFFIX}"
+        existing = empty_state()
+        if archive_path.exists():
+            existing = json.loads(gzip.decompress(archive_path.read_bytes()).decode("utf-8"))
+        existing["items"].update(entries)
+        # mtime=0 để output gzip quyết định (deterministic), tránh diff thừa trong git.
+        compressed = gzip.compress(_dump_compact(existing).encode("utf-8"), compresslevel=9, mtime=0)
+        archive_path.write_bytes(compressed)
+
+    archives = sorted(archive_dir.glob(f"{ARCHIVE_PREFIX}*{ARCHIVE_SUFFIX}"))
+    for old in archives[: max(0, len(archives) - max_archives)]:
+        old.unlink(missing_ok=True)
+
+
+def prune(
+    state: dict,
+    now: datetime,
+    archive_dir: Path | None = None,
+    max_active: int = MAX_ACTIVE_ITEMS,
+    max_archives: int = MAX_ARCHIVE_FILES,
+) -> None:
+    """Loại mục quá hạn hoặc vượt trần; nếu có archive_dir thì xoay vòng sang file .json.gz."""
     cutoff = now - timedelta(days=RETENTION_DAYS)
-    state["items"] = {
-        key: entry
-        for key, entry in state["items"].items()
-        if datetime.fromisoformat(entry["seen_at"]) >= cutoff
-    }
+    kept: dict[str, dict] = {}
+    expired: dict[str, dict] = {}
+    for key, entry in state["items"].items():
+        if datetime.fromisoformat(entry["seen_at"]) >= cutoff:
+            kept[key] = entry
+        else:
+            expired[key] = entry
+
+    if len(kept) > max_active:
+        ordered = sorted(kept.items(), key=lambda kv: datetime.fromisoformat(kv[1]["seen_at"]), reverse=True)
+        kept = dict(ordered[:max_active])
+        expired.update(ordered[max_active:])
+
+    if archive_dir is not None:
+        _archive_expired(expired, archive_dir, max_archives=max_archives)
+    state["items"] = kept
 
 
 def _recent_titles(state: dict, now: datetime) -> list[str]:

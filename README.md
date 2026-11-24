@@ -26,6 +26,7 @@ tech-radar/
 ├── README.md
 ├── PLAN.md                  # ý tưởng, kiến trúc, quyết định, roadmap
 ├── mkdocs.yml               # (Bước 1)
+├── assets/                  # trạng thái dedup (processed_urls.json + xoay vòng .json.gz)
 ├── docs/                    # Markdown được SSG build thành site
 │   ├── index.md
 │   └── digests/YYYY-MM-DD/
