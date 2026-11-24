@@ -1,0 +1,5 @@
+google-genai==3.6.1
+pydantic==2.14.4
+trafilatura==2.4.0
+requests==2.34.2
+tzdata==2025.2

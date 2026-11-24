@@ -11,3 +11,6 @@ __pycache__/
 
 # Build output
 site/
+
+# Manifest tạm của worker (tin Telegram)
+out/

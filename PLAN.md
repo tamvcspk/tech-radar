@@ -96,12 +96,12 @@ SQLite/JSON (state)         fulltext → Markdown + tóm tắt   (gửi SAU khi 
 - [ ] Xác nhận site live.
 
 **Bước 2 — Worker Python (cuối tuần).**
-- [ ] Ingestion: hnrss.org (points ≥ 300), GitHub Search API, GitHub Releases `.atom`.
-- [ ] Dedup và `processed_urls.json`.
-- [ ] Chặng 1: Gatekeeper với Pydantic, chọn Top 5–7.
-- [ ] Chặng 2: fulltext + sinh Markdown và tóm tắt Telegram. Escape HTML, kiểm tra độ dài.
-- [ ] Gửi Telegram (có `dry_run` để in ra console thay vì gửi).
-- [ ] Test với fixture; không gọi API thật trong unit test.
+- [x] Ingestion: hnrss.org (points ≥ 300), GitHub Search API, GitHub Releases `.atom`.
+- [x] Dedup và `processed_urls.json`.
+- [x] Chặng 1: Gatekeeper với Pydantic, chọn tối đa 7 mục điểm ≥ 7 (có thể ít hơn hoặc rỗng).
+- [x] Chặng 2: fulltext + sinh Markdown và tóm tắt Telegram. Escape HTML, kiểm tra độ dài.
+- [x] Gửi Telegram (`python -m worker send --dry-run` để in ra console).
+- [x] Test với fixture (20 test); không gọi API thật trong unit test. Đã chạy thử một lần end-to-end ghi vào thư mục tạm.
 
 **Bước 3 — Tự động hóa (~1–2 giờ).**
 - [ ] `daily-digest.yml`: cron `30 23 * * *` UTC + `workflow_dispatch`, `concurrency`.

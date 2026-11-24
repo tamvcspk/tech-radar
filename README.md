@@ -9,7 +9,7 @@ Chi tiết ý tưởng, kiến trúc và kế hoạch: xem [PLAN.md](PLAN.md).
 
 ## Trạng thái
 
-Bước 1 (khung site) đã xong ở local. Chưa có worker Python.
+Bước 1 (khung site) và Bước 2 (worker, chạy local) đã xong. Chưa có workflow tự động (Bước 3).
 
 Xem site cục bộ:
 
@@ -35,6 +35,17 @@ tech-radar/
     ├── daily-digest.yml     # cron + workflow_dispatch
     └── pages.yml            # (có thể gộp vào daily-digest)
 ```
+
+## Worker (chạy local)
+
+```
+.venv/Scripts/python -m pip install -r requirements-dev.txt
+.venv/Scripts/python -m pytest                # 20 test, không gọi API thật
+.venv/Scripts/python -m worker run            # lấy tin, chấm điểm, sinh docs/digests/ và out/telegram.json
+.venv/Scripts/python -m worker send --dry-run # in tin Telegram ra console
+```
+
+Đổi nguồn theo dõi trong [worker/sources.py](worker/sources.py). Mặc định `DRY_RUN=1`, nên không gửi Telegram khi chưa tắt.
 
 ## Secrets cần cấu hình (GitHub Actions)
 
