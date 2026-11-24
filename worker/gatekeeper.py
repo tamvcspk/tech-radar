@@ -20,6 +20,7 @@ Quy tắc:
 - Chỉ dựa trên tiêu đề, nguồn và mô tả được cung cấp. Không dùng kiến thức bên ngoài.
 - Điểm 7 trở lên chỉ dành cho thay đổi thực chất: sản phẩm mới, phát hành lớn, nghiên cứu đáng chú ý, sự cố lớn.
 - Quảng cáo, bài cảm xúc, tin nhỏ hoặc lặp lại: chấm thấp.
+- Công cụ cheat game, crack phần mềm, spoofer, bot giao dịch/ví tiền, hoặc mã có dấu hiệu lừa đảo: chấm 1.
 - Mỗi mục cần một lý do ngắn gọn và một chủ đề ngắn.
 - Trả về đúng một verdict cho mỗi id trong danh sách.
 

@@ -52,6 +52,9 @@ def test_github_search_parses_repo_items():
                 "html_url": "https://github.com/astral-sh/uv",
                 "description": "Python packaging",
                 "created_at": "2026-11-23T12:00:00Z",
+                "fork": False,
+                "archived": False,
+                "license": {"spdx_id": "MIT"},
             }
         ]
     }
@@ -59,6 +62,21 @@ def test_github_search_parses_repo_items():
     assert len(items) == 1
     assert items[0].repo == "astral-sh/uv"
     assert items[0].source == "github_search"
+
+
+def test_github_search_drops_forks_unlicensed_and_suspicious_repos():
+    base = {"created_at": "2026-11-23T12:00:00Z", "fork": False, "archived": False, "license": {"spdx_id": "MIT"}}
+    payload = {
+        "items": [
+            {**base, "full_name": "a/fork", "html_url": "https://github.com/a/fork", "description": "x", "fork": True},
+            {**base, "full_name": "a/nolic", "html_url": "https://github.com/a/nolic", "description": "x", "license": None},
+            {**base, "full_name": "b/fisch-script", "html_url": "https://github.com/b/fisch-script", "description": ""},
+            {**base, "full_name": "c/tool", "html_url": "https://github.com/c/tool", "description": "Free Solana sniper bot"},
+            {**base, "full_name": "d/good", "html_url": "https://github.com/d/good", "description": "Fast parser"},
+        ]
+    }
+    items = parse_github_search(payload, SINCE)
+    assert [i.repo for i in items] == ["d/good"]
 
 
 def test_releases_atom_keeps_only_recent_entries():

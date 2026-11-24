@@ -60,11 +60,29 @@ def parse_hn_feed(xml_text: str, since: datetime) -> list[Candidate]:
     return out
 
 
+# Repo cheat/crack/bot ví/lừa đảo hay xuất hiện trong kết quả tìm kiếm theo sao. Loại từ đầu.
+SUSPICIOUS = re.compile(
+    r"cheat|hack|crack|spoof|executor|exploit|activator|keygen|aimbot|wallhack|unlocker"
+    r"|roblox|fortnite|valorant|fisch|blox|rob-?run|recoil|pirate|sniper|pump-?fun"
+    r"|mnemonic|arbitrage|market-?maker|volume-?bump|trial-?reset|gta-?6|hwid|license-?key",
+    re.IGNORECASE,
+)
+
+
+def is_suspicious_repo(full_name: str, description: str) -> bool:
+    return bool(SUSPICIOUS.search(f"{full_name} {description}"))
+
+
 def parse_github_search(payload: dict, since: datetime) -> list[Candidate]:
     out: list[Candidate] = []
     for item in payload.get("items", []):
         published = datetime.fromisoformat(item["created_at"].replace("Z", "+00:00"))
         if published < since:
+            continue
+        if item.get("fork") or item.get("archived") or not item.get("license"):
+            continue
+        if is_suspicious_repo(item["full_name"], item.get("description") or ""):
+            log.info("Bỏ repo đáng ngờ: %s", item["full_name"])
             continue
         out.append(
             Candidate(
