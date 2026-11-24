@@ -104,9 +104,9 @@ SQLite/JSON (state)         fulltext → Markdown + tóm tắt   (gửi SAU khi 
 - [x] Test với fixture (20 test); không gọi API thật trong unit test. Đã chạy thử một lần end-to-end ghi vào thư mục tạm.
 
 **Bước 3 — Tự động hóa (~1–2 giờ).**
-- [ ] `daily-digest.yml`: cron `30 23 * * *` UTC + `workflow_dispatch`, `concurrency`.
-- [ ] Chuỗi job: worker → commit → deploy Pages → Telegram (chỉ khi deploy thành công).
-- [ ] Thông báo khi job fail.
+- [x] `daily-digest.yml`: cron `30 23 * * *` UTC + `workflow_dispatch` (mặc định dry run), `concurrency`.
+- [x] Chuỗi job: worker → commit → deploy Pages → Telegram (chỉ khi deploy thành công).
+- [x] Thông báo khi job fail (gửi qua Telegram).
 - [ ] Chạy thử thủ công 2–3 lần, kiểm tra chất lượng bài từng ngày.
 
 **Bước 4 — Theo dõi (1–2 tuần).**

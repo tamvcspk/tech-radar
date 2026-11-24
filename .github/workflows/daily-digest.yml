@@ -1,0 +1,135 @@
+name: Daily digest
+
+on:
+  schedule:
+    - cron: "30 23 * * *"  # 06:30 ICT (UTC+7)
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Chỉ in tin Telegram ra log, không gửi"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: daily-digest
+  cancel-in-progress: false
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      has_digest: ${{ steps.check.outputs.has_digest }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Cài dependency và chạy test
+        run: |
+          pip install -r requirements-dev.txt -r requirements.txt
+          python -m pytest -q
+
+      - name: Sinh bản tin
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python -m worker run
+
+      - name: Commit bài viết và trạng thái
+        run: |
+          git config user.name "tech-radar-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs processed_urls.json
+          if git diff --cached --quiet; then
+            echo "Không có thay đổi để commit."
+          else
+            git commit -m "digest: $(TZ=Asia/Ho_Chi_Minh date +%F)"
+            git push origin HEAD:main
+          fi
+
+      - name: Build site
+        run: python -m mkdocs build --strict
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - name: Kiểm tra có tin Telegram để gửi không
+        id: check
+        run: |
+          if [ -f out/telegram.json ]; then
+            echo "has_digest=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_digest=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/upload-artifact@v4
+        if: steps.check.outputs.has_digest == 'true'
+        with:
+          name: telegram-manifest
+          path: out/telegram.json
+
+  deploy:
+    needs: generate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
+
+  telegram:
+    # Chỉ chạy khi có tin và Pages đã deploy xong, để link trong tin không bao giờ 404.
+    needs: [generate, deploy]
+    if: needs.generate.outputs.has_digest == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install -r requirements-worker.txt
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: telegram-manifest
+          path: out
+
+      - name: Gửi Telegram
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          # Lịch tự động luôn gửi thật. Chạy tay thì mặc định chỉ dry run.
+          DRY_RUN: ${{ (github.event_name == 'schedule' || inputs.dry_run == false) && '0' || '1' }}
+        run: python -m worker send
+
+  notify-failure:
+    needs: [generate, deploy, telegram]
+    if: failure()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Báo lỗi qua Telegram
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          curl -sS -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+            --data-urlencode "text=Tech Radar: job hằng ngày lỗi. Xem log: ${RUN_URL}"
