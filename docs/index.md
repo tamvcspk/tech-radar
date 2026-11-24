@@ -6,4 +6,4 @@ Tin công nghệ được chọn lọc tự động mỗi sáng từ Hacker News
 - Dùng ô tìm kiếm phía trên để tra cứu toàn văn kho lưu trữ.
 
 !!! note "Về nội dung"
-    Bài viết do AI tóm tắt từ nguồn công khai và có thể sai sót. Luôn kiểm tra lại ở liên kết nguồn gốc ở cuối mỗi bài.
+    Bài viết do AI tóm tắt từ nguồn công khai và có thể sai sót. Luôn kiểm tra lại ở liên kết nguồn gốc ở đầu mỗi bài.

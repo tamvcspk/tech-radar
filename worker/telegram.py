@@ -64,17 +64,22 @@ def send_message(settings: Settings, text: str, dry_run: bool) -> bool:
 
     if not settings.telegram_bot_token or not settings.telegram_chat_id:
         raise RuntimeError("Thiếu TELEGRAM_BOT_TOKEN hoặc TELEGRAM_CHAT_ID")
-    resp = requests.post(
-        f"https://api.telegram.org/bot{settings.telegram_bot_token}/sendMessage",
-        json={
-            "chat_id": settings.telegram_chat_id,
-            "text": text,
-            "parse_mode": "HTML",
-            "link_preview_options": {"is_disabled": True},
-        },
-        timeout=20,
-    )
-    resp.raise_for_status()
+    try:
+        resp = requests.post(
+            f"https://api.telegram.org/bot{settings.telegram_bot_token}/sendMessage",
+            json={
+                "chat_id": settings.telegram_chat_id,
+                "text": text,
+                "parse_mode": "HTML",
+                "link_preview_options": {"is_disabled": True},
+            },
+            timeout=20,
+        )
+    except requests.RequestException as exc:
+        # Message của requests chứa URL có token, nên chỉ nêu tên lỗi.
+        raise RuntimeError(f"Không gọi được Telegram API ({type(exc).__name__})") from None
+    if not resp.ok:
+        raise RuntimeError(f"Telegram trả lỗi HTTP {resp.status_code}: {resp.text[:300]}")
     return bool(resp.json().get("ok"))
 
 

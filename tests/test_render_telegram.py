@@ -52,8 +52,41 @@ def test_write_digest_creates_index_and_pages(tmp_path: Path):
     assert "[A <b> & B](" in (target / "index.md").read_text(encoding="utf-8")
 
 
-def test_write_digest_overwrites_previous_run(tmp_path: Path):
-    write_digest("2026-11-24", [article(title="old")], docs_dir=tmp_path)
-    target = write_digest("2026-11-24", [article(title="new")], docs_dir=tmp_path)
-    names = {p.name for p in target.glob("*.md")}
-    assert len(names) == 2  # index + 1 bài, không còn bài cũ
+def test_write_digest_rerun_keeps_earlier_articles(tmp_path: Path):
+    old = article(title="old", url="https://example.com/old")
+    new = article(title="new", url="https://example.com/new")
+    write_digest("2026-11-24", [old], docs_dir=tmp_path)
+    target = write_digest("2026-11-24", [new], docs_dir=tmp_path)
+    assert (target / f"{old.slug}.md").exists()  # link Telegram buổi sáng không được 404
+    assert (target / f"{new.slug}.md").exists()
+    index = (target / "index.md").read_text(encoding="utf-8")
+    assert "2 mục" in index and old.slug in index and new.slug in index
+
+
+def test_write_digest_same_article_is_replaced_not_duplicated(tmp_path: Path):
+    write_digest("2026-11-24", [article(summary="v1")], docs_dir=tmp_path)
+    target = write_digest("2026-11-24", [article(summary="v2")], docs_dir=tmp_path)
+    index = (target / "index.md").read_text(encoding="utf-8")
+    assert "1 mục" in index and "v2" in index and "v1" not in index
+
+
+def test_index_escapes_brackets_and_parens(tmp_path: Path):
+    a = article(title="Foo [pdf]", url="https://en.wikipedia.org/wiki/Foo_(bar)")
+    target = write_digest("2026-11-24", [a], docs_dir=tmp_path)
+    index = (target / "index.md").read_text(encoding="utf-8")
+    assert r"[Foo \[pdf\]](" in index
+    assert "(https://en.wikipedia.org/wiki/Foo_%28bar%29)" in index
+
+
+def test_article_page_puts_source_lines_in_separate_paragraphs():
+    from worker.render import _article_page
+
+    page = _article_page(article())
+    assert "    Nguồn gốc: <https://example.com/x?a=1&b=2>\n\n    Chất lượng phân tích: description" in page
+
+
+def test_write_digest_updates_archive_index_newest_first(tmp_path: Path):
+    write_digest("2026-11-20", [article(title="older")], docs_dir=tmp_path)
+    write_digest("2026-11-24", [article(title="newer")], docs_dir=tmp_path)
+    archive = (tmp_path / "digests" / "index.md").read_text(encoding="utf-8")
+    assert archive.index("2026-11-24") < archive.index("2026-11-20")

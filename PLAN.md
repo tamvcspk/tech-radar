@@ -1,6 +1,6 @@
 # Tech Radar — Ý tưởng & Kế hoạch
 
-Trạng thái: **Bản nháp, chưa bắt đầu code.**
+Trạng thái: **Đã triển khai Bước 1–3** (khung site, worker, workflow hằng ngày). Xem README để biết cách chạy.
 Ngày tạo: 2026-11-24
 
 ## 1. Mục tiêu
@@ -43,8 +43,8 @@ SQLite/JSON (state)         fulltext → Markdown + tóm tắt   (gửi SAU khi 
 | Repo | `tech-radar`, public | Điều kiện để Pages miễn phí |
 | Số mục/ngày | Linh hoạt 0–7, chỉ lấy điểm ≥ 7 | Không gửi tin rỗng |
 | State | `processed_urls.json` trong repo | Diff gọn, dễ đọc. Không dùng `state.db` (binary) |
-| LLM | Gemini (free tier), sau lớp provider mỏng | Dễ đổi model khi quota/giá thay đổi |
-| Thứ tự job | Python → commit → deploy Pages → Telegram | Link Telegram không bao giờ 404 |
+| LLM | `gemini-3.8-flash` (đã xác minh qua `models.list`), sau lớp provider mỏng | Tổng ~8 req/ngày nên ưu tiên chất lượng phân tích tiếng Việt & chống bịa đặt thay vì `flash-lite`; dự phòng `gemini-3.5-flash-lite` nếu bị siết quota |
+| Thứ tự job | Python → `mkdocs build --strict` → commit → deploy Pages → Telegram | Bài hỏng không lọt vào `main`; link Telegram không bao giờ 404 |
 
 ## 4. Rủi ro & cách xử lý
 
@@ -84,34 +84,37 @@ SQLite/JSON (state)         fulltext → Markdown + tóm tắt   (gửi SAU khi 
 Ước lượng thực tế: khoảng 1 cuối tuần cho cả 3 bước, không phải 1 buổi tối.
 
 **Bước 0 — Chốt quyết định (xong ở mục 3).**
-- [ ] Xác nhận Gemini API khả dụng và quota đủ tại vùng của bạn.
+- [x] Xác nhận Gemini API khả dụng và kiểm tra `models.list()` (`gemini-3.8-flash`).
 - [x] Chọn SSG: MkDocs Material 9.7.0 (xem mục 3).
-- [ ] Tạo bot Telegram, lấy `TELEGRAM_CHAT_ID`.
+- [ ] Tạo bot Telegram, lấy `TELEGRAM_CHAT_ID` (và đặt vào GitHub Secrets).
 
 **Bước 1 — Khung repo & Pages (~30 phút).**
 - [x] Cấu hình `mkdocs.yml` với theme, dark mode, tìm kiếm (build `--strict` đã qua ở máy local).
-- [x] Tạo `docs/index.md` và một bản tin mẫu thủ công (`docs/digests/2026-11-24/`).
+- [x] Tạo `docs/index.md`, `docs/digests/index.md` (xếp mới nhất lên đầu) và bản tin đầu tiên (`docs/digests/2026-11-24/`).
 - [x] Workflow `pages.yml`: build và deploy bằng `actions/deploy-pages`.
-- [ ] Thay `<user>` trong `mkdocs.yml`, push lên GitHub, bật Pages (source: GitHub Actions).
-- [ ] Xác nhận site live.
+- [x] Thay `<user>` thành `tamvcspk` trong `mkdocs.yml`.
+- [ ] Push lên GitHub, bật Pages (source: GitHub Actions) và xác nhận site live.
 
 **Bước 2 — Worker Python (cuối tuần).**
-- [x] Ingestion: hnrss.org (points ≥ 300), GitHub Search API, GitHub Releases `.atom`.
-- [x] Dedup và `processed_urls.json`.
+- [x] Ingestion: hnrss.org (points ≥ 300), GitHub Search API (lọc fork/archived/NOASSERTION/từ khóa đáng ngờ), GitHub Releases `.atom` (đọc `<content>`, bỏ pre-release).
+- [x] Dedup (giữ query định danh, bỏ tracking param) và `processed_urls.json`.
 - [x] Chặng 1: Gatekeeper với Pydantic, chọn tối đa 7 mục điểm ≥ 7 (có thể ít hơn hoặc rỗng).
-- [x] Chặng 2: fulltext + sinh Markdown và tóm tắt Telegram. Escape HTML, kiểm tra độ dài.
-- [x] Gửi Telegram (`python -m worker send --dry-run` để in ra console).
-- [x] Test với fixture (20 test); không gọi API thật trong unit test. Đã chạy thử một lần end-to-end ghi vào thư mục tạm.
+- [x] Chặng 2: fulltext/README (kiểm tra license kể cả link GitHub từ HN) + sinh Markdown (gộp bài khi chạy lại trong ngày qua `.articles.json`) và tóm tắt Telegram. Escape HTML, kiểm tra độ dài.
+- [x] Retry/backoff cho lỗi Gemini tạm thời (429/5xx) và gửi Telegram (`python -m worker send --dry-run`).
+- [x] Test với fixture (46 test); không gọi API thật trong unit test.
 
 **Bước 3 — Tự động hóa (~1–2 giờ).**
-- [x] `daily-digest.yml`: cron `30 23 * * *` UTC + `workflow_dispatch` (mặc định dry run), `concurrency`.
-- [x] Chuỗi job: worker → commit → deploy Pages → Telegram (chỉ khi deploy thành công).
-- [x] Thông báo khi job fail (gửi qua Telegram).
-- [ ] Chạy thử thủ công 2–3 lần, kiểm tra chất lượng bài từng ngày.
+- [x] `daily-digest.yml`: cron `30 23 * * *` UTC + `workflow_dispatch` (mặc định dry run), `concurrency`, quyền tối thiểu theo từng job.
+- [x] Chuỗi job: worker → `mkdocs build --strict` → commit (`git pull --rebase`) → deploy Pages (chỉ khi có bản tin) → Telegram.
+- [x] Thông báo khi job fail (gửi qua Telegram, tự bỏ qua nếu chưa cấu hình secret).
+- [ ] Cấu hình GitHub Secrets (`GEMINI_API_KEY`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`) và Variable `GEMINI_MODEL=gemini-3.8-flash`.
+- [ ] Chạy thử thủ công (`workflow_dispatch`) 2–3 lần, kiểm tra chất lượng bài từng ngày.
 
-**Bước 4 — Theo dõi (1–2 tuần).**
+**Bước 4 — Theo dõi & tinh chỉnh (1–2 tuần).**
 - [ ] Xem phân phối điểm, số mục mỗi ngày, lỗi fetch.
+- [ ] Tinh chỉnh heuristic chống repo spam sao ảo ở GitHub Search dựa trên log (`stars`, `forks`, `lang`, `desc_len`) đã gắn sẵn.
 - [ ] Chỉnh prompt dựa trên bài thực tế.
+- [ ] Đồng bộ Python local về 3.12 (khớp CI) khi tiện; cân nhắc `mkdocs-awesome-nav` nếu muốn đổi cả thứ tự sidebar (hiện đã có trang `docs/digests/index.md` xếp mới nhất lên đầu).
 
 ## 7. Câu hỏi đã chốt (2026-11-24)
 

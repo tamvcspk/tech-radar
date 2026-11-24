@@ -1,7 +1,7 @@
 """Dedup và trạng thái (processed_urls.json).
 
 Khóa nhận diện một mục:
-- URL chuẩn hóa (bỏ query, fragment, www, dấu / cuối).
+- URL chuẩn hóa (bỏ fragment, www, dấu / cuối, tham số tracking; giữ các query param còn lại như ?id=, ?v=).
 - Với repo GitHub gốc (đúng 2 đoạn path): thêm khóa "repo:owner/name".
 - Tiêu đề gần giống (>= 0.85) với mục đã thấy trong 7 ngày gần nhất.
 """
@@ -12,7 +12,7 @@ import json
 from datetime import datetime, timedelta
 from difflib import SequenceMatcher
 from pathlib import Path
-from urllib.parse import urlsplit
+from urllib.parse import parse_qsl, urlencode, urlsplit
 
 from .models import Candidate
 
@@ -21,12 +21,27 @@ TITLE_WINDOW_DAYS = 7
 TITLE_SIMILARITY = 0.85
 
 
+TRACKING_PARAMS = {"utm", "ref", "ref_src", "fbclid", "gclid", "mc_cid", "mc_eid", "igshid"}
+
+
+def _is_tracking_param(name: str) -> bool:
+    name = name.lower()
+    return name.startswith("utm_") or name in TRACKING_PARAMS
+
+
 def canonical_url(url: str) -> str:
     parts = urlsplit(url.strip())
     host = parts.netloc.lower()
     if host.startswith("www."):
         host = host[4:]
-    return f"{host}{parts.path.rstrip('/')}"
+    kept_params = [
+        (k, v)
+        for k, v in sorted(parse_qsl(parts.query, keep_blank_values=True))
+        if not _is_tracking_param(k)
+    ]
+    query = urlencode(kept_params)
+    base = f"{host}{parts.path.rstrip('/')}"
+    return f"{base}?{query}" if query else base
 
 
 def github_repo_key(url: str) -> str | None:

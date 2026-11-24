@@ -6,11 +6,12 @@ Biến môi trường thật luôn thắng .env (dùng setdefault).
 from __future__ import annotations
 
 import os
+import re
 from dataclasses import dataclass
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_GEMINI_MODEL = "gemini-3.8-flash"  # chưa xác minh chính thức, kiểm tra bằng models.list
+DEFAULT_GEMINI_MODEL = "gemini-3.8-flash"
 DEFAULT_SITE_BASE_URL = "https://tamvcspk.github.io/tech-radar"
 
 
@@ -22,7 +23,13 @@ def load_dotenv(path: Path) -> None:
         if not line or line.startswith("#") or "=" not in line:
             continue
         key, _, value = line.partition("=")
-        os.environ.setdefault(key.strip(), value.strip())
+        key = key.strip().removeprefix("export ").strip()
+        value = value.strip()
+        if value[:1] in {'"', "'"} and value.find(value[0], 1) != -1:
+            value = value[1 : value.find(value[0], 1)]  # bỏ dấu ngoặc và phần comment sau đó
+        else:
+            value = re.split(r"\s#", value, maxsplit=1)[0].strip()
+        os.environ.setdefault(key, value)
 
 
 @dataclass(frozen=True)

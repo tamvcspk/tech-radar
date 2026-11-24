@@ -14,6 +14,14 @@ def test_canonical_url_strips_query_fragment_www_and_trailing_slash():
     assert dd.canonical_url("https://www.Example.com/a/b/?utm=1#x") == "example.com/a/b"
 
 
+def test_canonical_url_keeps_identifying_query_params():
+    a = dd.canonical_url("https://news.ycombinator.com/item?id=123")
+    b = dd.canonical_url("https://news.ycombinator.com/item?id=456")
+    assert a != b
+    assert dd.canonical_url("https://youtube.com/watch?v=abc&utm_source=x") == "youtube.com/watch?v=abc"
+    assert dd.canonical_url("https://x.com/p?b=2&a=1") == dd.canonical_url("https://x.com/p?a=1&b=2")
+
+
 def test_github_repo_key_only_for_repo_root():
     assert dd.github_repo_key("https://github.com/Astral-sh/uv") == "repo:astral-sh/uv"
     assert dd.github_repo_key("https://github.com/astral-sh/uv/releases/tag/0.5.0") is None

@@ -15,7 +15,7 @@ from .config import ROOT, Settings
 from .enrich import fetch_material
 from .gatekeeper import score_candidates, select
 from .ingest import fetch_all
-from .llm import LLMProvider
+from .llm import LLMProvider, TransientLLMError
 from .render import write_digest
 from .telegram import build_message, write_manifest
 
@@ -36,6 +36,8 @@ def run_generate(
 ) -> Path | None:
     """Trả về thư mục bản tin đã ghi, hoặc None nếu không có mục nào đạt ngưỡng."""
     now = now or datetime.now(timezone.utc)
+    # Xóa manifest cũ để `send` không gửi lại tin của lần chạy trước khi hôm nay không có bài.
+    (OUT_DIR / TELEGRAM_MANIFEST).unlink(missing_ok=True)
     state = dd.load_state(STATE_PATH)
     dd.prune(state, now)
 
@@ -60,6 +62,9 @@ def run_generate(
                 raise ValueError("không có nội dung để phân tích")
             articles.append(write_article(candidate, item.verdict, material, quality, llm))
             dd.mark(state, [candidate], "published", now)
+        except TransientLLMError as exc:
+            # Lỗi tạm thời (rate limit/quá tải): không đánh dấu, để lần chạy sau thử lại.
+            log.warning("Bỏ mục %s vì LLM lỗi tạm thời: %s", candidate.title, exc)
         except Exception as exc:  # noqa: BLE001 - một mục hỏng không làm hỏng cả bản tin
             log.warning("Bỏ mục %s: %s", candidate.title, exc)
             dd.mark(state, [candidate], "failed", now)

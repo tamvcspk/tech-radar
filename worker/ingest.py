@@ -5,11 +5,13 @@ Mỗi nguồn lỗi thì chỉ bỏ nguồn đó, không làm hỏng cả lần 
 
 from __future__ import annotations
 
+import html
 import logging
 import re
 import xml.etree.ElementTree as ET
-from datetime import datetime
+from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
+from urllib.parse import urlsplit
 
 import requests
 
@@ -32,6 +34,45 @@ def _gh_headers(token: str) -> dict[str, str]:
     return headers
 
 
+# Các đường dẫn 2 đoạn của github.com không phải repo.
+NON_REPO_OWNERS = {
+    "orgs", "topics", "sponsors", "features", "settings", "marketplace", "collections",
+    "apps", "enterprise", "about", "pricing", "explore", "trending", "readme", "users",
+}
+# Phần boilerplate hnrss gắn vào mô tả, không mang thông tin về nội dung bài.
+HN_BOILERPLATE = re.compile(
+    r"Article URL:\s*\S+|Comments URL:\s*\S+|Points:\s*\d+|#\s*Comments:\s*\d+", re.IGNORECASE
+)
+# Tag của bản canary/nightly/alpha/beta/rc (kể cả dạng CPython v3.14.0a7, Go go1.24rc1).
+PRERELEASE_TAG = re.compile(
+    r"canary|nightly|snapshot"
+    r"|(?:^|[-_.]|\d)(?:alpha|beta|rc|dev|pre)(?:[-_.]?\d+)?(?:$|[-_.])"
+    r"|\d[ab]\d+(?:$|[-_.])",
+    re.IGNORECASE,
+)
+
+
+def github_repo_from_url(url: str) -> str | None:
+    """'owner/name' nếu url là trang gốc của một repo GitHub, ngược lại None."""
+    parts = urlsplit(url.strip())
+    if parts.scheme.lower() not in {"http", "https"}:
+        return None
+    if parts.netloc.lower().removeprefix("www.") != "github.com":
+        return None
+    segments = [s for s in parts.path.split("/") if s]
+    if len(segments) != 2:
+        return None
+    owner = segments[0]
+    name = re.sub(r"\.git$", "", segments[1], flags=re.IGNORECASE)
+    if not owner or not name or owner.lower() in NON_REPO_OWNERS:
+        return None
+    return f"{owner}/{name}"
+
+
+def _plain_text(markup: str) -> str:
+    return " ".join(html.unescape(re.sub(r"<[^>]+>", " ", markup)).split())
+
+
 def parse_hn_feed(xml_text: str, since: datetime) -> list[Candidate]:
     root = ET.fromstring(xml_text)
     out: list[Candidate] = []
@@ -41,12 +82,17 @@ def parse_hn_feed(xml_text: str, since: datetime) -> list[Candidate]:
         pub = item.findtext("pubDate")
         if not title or not link or not pub:
             continue
-        published = parsedate_to_datetime(pub)
+        try:
+            published = parsedate_to_datetime(pub)
+        except (TypeError, ValueError):
+            continue
+        if published.tzinfo is None:  # feed thiếu timezone: coi là UTC để so sánh được
+            published = published.replace(tzinfo=timezone.utc)
         if published < since:
             continue
         desc_html = item.findtext("description") or ""
         match = re.search(r"Points:\s*(\d+)", desc_html)
-        text = " ".join(re.sub(r"<[^>]+>", " ", desc_html).split())
+        text = " ".join(HN_BOILERPLATE.sub(" ", _plain_text(desc_html)).split())
         out.append(
             Candidate(
                 source="hn",
@@ -55,16 +101,19 @@ def parse_hn_feed(xml_text: str, since: datetime) -> list[Candidate]:
                 description=text[:500],
                 published=published,
                 points=int(match.group(1)) if match else None,
+                repo=github_repo_from_url(link),
             )
         )
     return out
 
 
 # Repo cheat/crack/bot ví/lừa đảo hay xuất hiện trong kết quả tìm kiếm theo sao. Loại từ đầu.
+# Các từ chung chung (hack, cheat, crack...) phải đứng độc lập để không chặn nhầm hackathon, cheatsheet...
 SUSPICIOUS = re.compile(
-    r"cheat|hack|crack|spoof|executor|exploit|activator|keygen|aimbot|wallhack|unlocker"
-    r"|roblox|fortnite|valorant|fisch|blox|rob-?run|recoil|pirate|sniper|pump-?fun"
-    r"|mnemonic|arbitrage|market-?maker|volume-?bump|trial-?reset|gta-?6|hwid|license-?key",
+    r"(?<![a-z0-9])(?:cheats?|cheating|hacks?|hacking|cracks?|cracked|cracking|spoof\w*"
+    r"|exploits?|activators?|unlockers?)(?![a-z0-9])"
+    r"|keygen|aimbot|wallhack|roblox|fortnite|valorant|fisch|blox|rob-?run|recoil|pirate|sniper"
+    r"|pump-?fun|mnemonic|arbitrage|market-?maker|volume-?bump|trial-?reset|gta-?6|hwid|license-?key",
     re.IGNORECASE,
 )
 
@@ -79,17 +128,27 @@ def parse_github_search(payload: dict, since: datetime) -> list[Candidate]:
         published = datetime.fromisoformat(item["created_at"].replace("Z", "+00:00"))
         if published < since:
             continue
-        if item.get("fork") or item.get("archived") or not item.get("license"):
+        spdx = ((item.get("license") or {}).get("spdx_id") or "").strip()
+        if item.get("fork") or item.get("archived") or not spdx or spdx == "NOASSERTION":
             continue
         if is_suspicious_repo(item["full_name"], item.get("description") or ""):
             log.info("Bỏ repo đáng ngờ: %s", item["full_name"])
             continue
+        desc = (item.get("description") or "")[:500]
+        log.info(
+            "GitHub repo: %s (stars=%s, forks=%s, lang=%s, desc_len=%d)",
+            item["full_name"],
+            item.get("stargazers_count"),
+            item.get("forks_count"),
+            item.get("language"),
+            len(desc),
+        )
         out.append(
             Candidate(
                 source="github_search",
                 title=item["full_name"],
                 url=item["html_url"],
-                description=(item.get("description") or "")[:500],
+                description=desc,
                 published=published,
                 repo=item["full_name"],
             )
@@ -106,6 +165,9 @@ def parse_releases_atom(xml_text: str, repo: str, since: datetime) -> list[Candi
         updated = entry.findtext(f"{ATOM}updated")
         if not title or link_el is None or not updated:
             continue
+        href = (link_el.get("href") or "").strip()
+        if not href or PRERELEASE_TAG.search(href.rsplit("/", 1)[-1]):
+            continue
         published = datetime.fromisoformat(updated.replace("Z", "+00:00"))
         if published < since:
             continue
@@ -113,7 +175,8 @@ def parse_releases_atom(xml_text: str, repo: str, since: datetime) -> list[Candi
             Candidate(
                 source="github_release",
                 title=f"{repo} {title}",
-                url=link_el.get("href", ""),
+                url=href,
+                description=_plain_text(entry.findtext(f"{ATOM}content") or "")[:500],
                 published=published,
             )
         )
