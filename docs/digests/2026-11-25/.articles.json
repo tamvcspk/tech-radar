@@ -1,0 +1,86 @@
+[
+  {
+    "candidate": {
+      "source": "hn",
+      "title": "Matrix Multiplication is Θ(n^2.25) [pdf]",
+      "url": "https://github.com/openai/math/blob/main/preprints/The-matrix-multiplication-exponent-is-nine-fourths-November-24-2026/paper.pdf",
+      "description": "",
+      "published": "2026-11-25T01:19:26Z",
+      "points": 357,
+      "repo": null
+    },
+    "verdict": {
+      "id": 0,
+      "score": 8,
+      "reason": "Nghiên cứu lý thuyết đột phá về độ phức tạp của thuật toán nhân ma trận.",
+      "topic": "Computer Science"
+    },
+    "slug": "matrix-multiplication-is-n-2-25-pdf-5ee45f",
+    "summary": "Nguồn cung cấp chỉ hiển thị giao diện GitHub lưu trữ tệp paper.pdf dung lượng 1.03 MB thuộc kho lưu trữ openai/math.\nNội dung chi tiết của bài báo khoa học hiện chưa rõ do trang web không hiển thị nội dung bên trong tệp.",
+    "body_markdown": "## Vấn đề\nNội dung nguồn cung cấp là giao diện trang GitHub lưu trữ tệp \"paper.pdf\" nằm tại đường dẫn \"openai/math/preprints/The-matrix-multiplication-exponent-is-nine-fourths-November-24-2026\". Vấn đề toán học hoặc kỹ thuật cụ thể mà bài báo giải quyết chưa rõ vì nguồn không hiển thị nội dung chi tiết của tệp PDF này.\n\n## Cách hoạt động\nCách thức hoạt động, giải thuật hoặc phương pháp chứng minh cụ thể trong bài báo chưa rõ do trang web chỉ chứa các thành phần điều hướng của GitHub và thông báo yêu cầu iframe để xem tệp.\n\n## Trade-off và hạn chế\nCác đánh đổi và hạn chế kỹ thuật của nghiên cứu chưa rõ do thiếu dữ liệu toàn văn. Hạn chế duy nhất ghi nhận được theo nguồn là người dùng không thể xem trực tiếp nội dung tệp tại thời điểm truy cập vì trình xem đòi hỏi iframe.\n\n## Điểm đáng chú ý\nTheo nguồn, tệp tài liệu \"paper.pdf\" có dung lượng 1.03 MB, được lưu trữ trong nhánh main của kho mã nguồn \"openai/math\" thuộc thư mục bản thảo trước in (preprints).",
+    "quality": "fulltext"
+  },
+  {
+    "candidate": {
+      "source": "hn",
+      "title": "Ternary Bonsai 2.5 27B",
+      "url": "https://prismml.com/news/bonsai-2-5-27b",
+      "description": "",
+      "published": "2026-11-24T20:08:03Z",
+      "points": 393,
+      "repo": null
+    },
+    "verdict": {
+      "id": 3,
+      "score": 7,
+      "reason": "Phát hành mô hình AI mới thu hút sự chú ý lớn từ cộng đồng.",
+      "topic": "AI"
+    },
+    "slug": "ternary-bonsai-2-5-27b-ca7efd",
+    "summary": "Ternary Bonsai 2.5 27B là mô hình nén dựa trên Qwen3.8 27B với kích thước 5,9 GB phục vụ các tác vụ lập trình và chạy agent trên thiết bị cá nhân.\nPhiên bản này tập trung xử lý lỗi suy nghĩ lan man và vòng lặp lặp lại, đồng thời tối ưu tốc độ gọi công cụ đa bước qua llama.cpp và MLX.",
+    "body_markdown": "## Vấn đề\nTrong các quy trình làm việc dạng agent (agentic workflows), mô hình AI rất nhạy cảm với sự suy giảm chất lượng vì những sai lệch nhỏ có thể tích tụ qua từng lượt gọi công cụ và phá hỏng kết quả cuối cùng. Ở phiên bản trước (Ternary Bonsai 2), mô hình vẫn gặp tình trạng suy nghĩ thừa thãi (excessive thinking) và rơi vào các vòng lặp lặp đi lặp lại. Đồng thời, việc vận hành các trợ lý lập trình hoặc xử lý tài liệu nhạy cảm trên máy cục bộ đòi hỏi mô hình phải có dung lượng bộ nhớ nhỏ mà không làm mất đi năng lực suy luận phức tạp.\n\n## Cách hoạt động\nTernary Bonsai 2.5 27B được xây dựng dựa trên mô hình nền tảng Qwen3.8 27B nhưng nén lại chỉ còn dung lượng 5,9 GB (theo nguồn). Bản nâng cấp này được huấn luyện để duy trì mục tiêu xuyên suốt tương tác dài, thông dịch kết quả trả về từ công cụ và tự điều chỉnh khi một bước thao tác gặp lỗi. Mô hình hoàn thành nhiệm vụ với ít lượt hội thoại hơn và tiêu tốn ít token hơn bản tiền nhiệm. Về môi trường chạy, hệ thống tương thích với GPU NVIDIA và Intel thông qua llama.cpp, cũng như các thiết bị Apple (Mac, iPhone, iPad) thông qua MLX.\n\n## Trade-off và hạn chế\nTheo nguồn công bố, mô hình vẫn tồn tại khoảng cách hiệu năng nhất định so với phiên bản gốc full-precision Qwen 3.8 27B, dù khoảng cách này đã được thu hẹp. Bài viết chưa nêu chi tiết cụ thể về mặt toán học hay phương pháp nén tam phân (ternary compression) mà dẫn chiếu sang whitepaper riêng. Ngoài ra, nguồn chưa làm rõ mức tiêu thụ điện năng thực tế cũng như tỷ lệ suy giảm ngữ cảnh khi thực hiện các tác vụ kéo dài vượt ngưỡng tài liệu công bố.\n\n## Điểm đáng chú ý\nTheo nguồn, hiệu năng xử lý của mô hình đạt tốc độ rất cao: trên một GPU NVIDIA H100 đơn lẻ, tốc độ sinh đạt 291 tokens/s (khi dùng MTP) và tốc độ xử lý prompt 2.000 token đạt 3.200 tokens/s; trên GPU phổ thông RTX 4090, tốc độ sinh đạt 204 tokens/s (với MTP) và xử lý prompt đạt khoảng 3.060 tokens/s. Mô hình có kích thước nhỏ gọn 5,9 GB giúp chạy trọn vẹn trên phần cứng tiêu dùng và thiết bị di động của Apple. Trọng số mô hình được phát hành công khai theo giấy phép Apache 2.0.",
+    "quality": "fulltext"
+  },
+  {
+    "candidate": {
+      "source": "hn",
+      "title": "Quad9 pulled their DNS service from France",
+      "url": "https://quad9.net/news/blog/quad9-service-deactivation-in-france/",
+      "description": "",
+      "published": "2026-11-24T08:33:14Z",
+      "points": 370,
+      "repo": null
+    },
+    "verdict": {
+      "id": 10,
+      "score": 7,
+      "reason": "Sự cố pháp lý buộc nhà cung cấp dịch vụ DNS lớn phải rút khỏi thị trường Pháp.",
+      "topic": "Infra"
+    },
+    "slug": "quad9-pulled-their-dns-service-from-france-ed1e8f",
+    "summary": "Quad9 ngừng cung cấp dịch vụ phân giải DNS tại Pháp do phán quyết tòa án buộc chặn các trang vi phạm bản quyền thể thao theo yêu cầu của beIN.\nThay vì can thiệp lọc nội dung tên miền, tổ chức này chọn từ chối toàn bộ truy vấn từ Pháp dựa trên GeoIP dù chấp nhận các sai số kỹ thuật.",
+    "body_markdown": "## Vấn đề\n\nQuad9 đối mặt với các yêu cầu pháp lý tại Pháp từ đơn vị nắm giữ bản quyền thể thao beIN, đòi hỏi nhà cung cấp này phải chặn các tên miền phát trực tuyến lậu. Phán quyết của tòa án giữ nguyên yêu cầu này và Quad9 đứng trước các khoản phạt vì không tuân thủ. Về mặt kỹ thuật và nguyên tắc, Quad9 phản đối việc biến các máy chủ đệ quy DNS (recursive DNS resolver) thành công cụ thực thi kiểm duyệt nội dung cho bên thứ ba, vì giải pháp này không tác động đến máy chủ gốc và bất kỳ ai cũng có thể tự thiết lập resolver riêng. Do không chấp nhận thỏa hiệp nguyên tắc cốt lõi là chỉ chặn rủi ro an ninh mạng mà không chặn nội dung, Quad9 buộc phải rút dịch vụ khỏi Pháp để vừa tuân thủ phán quyết vừa duy trì tôn chỉ hoạt động.\n\n## Cách hoạt động\n\nTheo nguồn, vào lúc 09:00 giờ CET ngày 24/11/2026, Quad9 tiến hành từ chối mọi truy vấn DNS gửi tới bất kỳ địa chỉ dịch vụ nào bắt nguồn từ Pháp, khiến việc phân giải DNS không thể thực hiện. Do không lưu trữ thông tin người dùng, Quad9 buộc phải dùng phương pháp định vị GeoIP để nhận diện lưu lượng từ quốc gia này. Tổ chức từ chối sử dụng cơ sở dữ liệu GeoIP để lọc cục bộ danh sách tên miền lậu, vì điều đó sẽ công nhận DNS là công cụ hạn chế nội dung và có nguy cơ mở rộng việc áp dụng luật pháp Pháp sang các quốc gia khác. Thay vào đó, bộ lọc GeoIP được áp dụng cho toàn bộ kết nối nhằm ngừng phục vụ hoàn toàn người dùng trong phạm vi quyền hạn của Pháp.\n\n## Trade-off và hạn chế\n\n- Sai số phân loại lớn: Phương pháp định vị GeoIP bộc lộ hạn chế cố hữu, tạo ra cả tình trạng chặn quá mức (overblocking - chặn nhầm truy vấn không thuộc Pháp) và chặn thiếu (underblocking - vẫn xử lý truy vấn của người dùng ở Pháp). Nguyên nhân là do dữ liệu định vị IP thường xuyên thiếu chính xác, IP bị mua bán, mạng di động và mạng diện rộng doanh nghiệp hoạt động xuyên biên giới, hoặc lưu lượng đi qua VPN và proxy. Mức độ thiếu chính xác cụ thể là bao nhiêu thì chưa rõ do Quad9 không thể đo lường.\n- Tác động tiêu cực tới người dùng: Người dùng tại Pháp không nắm được thông tin sẽ bị mất kết nối DNS đột ngột. Khi phải chuyển sang dịch vụ phân giải khác, họ mất đi lớp bảo vệ trước phần mềm độc hại của Quad9 và có nguy cơ phải dùng các resolver có chính sách bảo mật kém hơn.\n- Phương án tiêu cực nhất: Quad9 thừa nhận việc ngừng toàn bộ dịch vụ là một kết quả tồi tệ, chấp nhận hy sinh sự ổn định ngắn hạn để bảo vệ tính toàn vẹn của hệ thống DNS dài hạn.\n\n## Điểm đáng chú ý\n\n- Phân định rõ giữa an ninh mạng và can thiệp nội dung: Hệ thống của Quad9 lọc các mối đe dọa mạng (mã độc) trên địa chỉ 9.9.9.9 dựa trên đối tác tình báo nguy cơ (và có quyền can thiệp sửa đổi chủ quan nếu đối tác phân loại sai), đồng thời duy trì dải IP 9.9.9.10 mở hoàn toàn không áp dụng bất kỳ bộ lọc nào. Yêu cầu của tòa án Pháp ép buộc can thiệp lên mọi địa chỉ dịch vụ, phá vỡ cấu trúc và cam kết vận hành này.\n- Nguy cơ phân mảnh Internet: Quad9 cảnh báo tiền lệ buộc DNS resolver chặn nội dung sẽ dẫn đến sự leo thang kiểm duyệt, mở rộng từ vi phạm bản quyền sang các phạm vi khác như mạng xã hội, ứng dụng nhắn tin, lý do đạo đức, tôn giáo hoặc chính trị.\n- Tiền lệ pháp lý: Đây là cuộc chiến pháp lý thứ hai Quad9 phải đối mặt liên quan đến tính toàn vẹn của DNS; trước đó họ đã giữ vững lập trường và giành chiến thắng trong một vụ kiện tương tự tại Đức.",
+    "quality": "fulltext"
+  },
+  {
+    "candidate": {
+      "source": "github_release",
+      "title": "astral-sh/uv 0.13.10",
+      "url": "https://github.com/astral-sh/uv/releases/tag/0.13.10",
+      "description": "Release Notes Released on 2026-11-24. This release addresses GHSA-vjvj-3m3f-fgmm . Enhancements Validate that dependency requirements in uv.lock match the locked package versions ( astral-sh/uv#23238 ) Explain why uv.lock needs to be updated when --locked rejects it ( astral-sh/uv#23251 ) Report dependencies whose package entries are missing from uv.lock ( astral-sh/uv#23304 ) Python Update managed CPython 3.11.18, 3.12.16, 3.13.18, 3.14.10, 3.15.2, and 3.16.0a2 builds ( astral-sh/uv#23240 , ast",
+      "published": "2026-11-24T21:23:07Z",
+      "points": null,
+      "repo": null
+    },
+    "verdict": {
+      "id": 2,
+      "score": 7,
+      "reason": "Bản phát hành vá lỗ hổng bảo mật và cải tiến xác thực lockfile của uv.",
+      "topic": "DevTools"
+    },
+    "slug": "astral-sh-uv-0-13-10-e79731",
+    "summary": "Bản phát hành uv 0.13.10 xử lý lỗ hổng bảo mật GHSA-vjvj-3m3f-fgmm và siết chặt quy trình kiểm tra tính hợp lệ của uv.lock.\nPhiên bản này cũng sửa lỗi định dạng tệp wheel, thử nghiệm tính năng proxy index chuyển tiếp và cập nhật các bản dựng Python.",
+    "body_markdown": "## Vấn đề\n- Dự án cần khắc phục lỗ hổng an ninh được định danh là GHSA-vjvj-3m3f-fgmm (chi tiết cụ thể của lỗ hổng chưa rõ trong tài liệu nguồn).\n- Tệp `uv.lock` trước đây có thể gặp tình trạng thiếu đồng bộ giữa yêu cầu phụ thuộc và phiên bản gói thực tế, thiếu thông tin giải thích khi cờ `--locked` từ chối tệp khóa, hoặc bỏ sót cảnh báo khi phụ thuộc không có mục nhập trong lockfile.\n- Nguy cơ từ các tệp wheel hỏng hoặc bất thường cấu trúc khi trường kích thước nén giữa ZIP data descriptor và central directory không trùng khớp.\n- Thông tin bộ nhớ đệm (cache) của trình thông dịch Python không tự cập nhật khi môi trường thay đổi như cập nhật libc, phiên bản macOS hoặc tệp `pyvenv.cfg`.\n- Các trục trặc khác trong phân giải: lỗi khi `uv sync --no-install-package` gặp gói thiếu bản phân phối tương thích, việc đòi hỏi hash cho các wheel không thể truy cập, và việc tái sử dụng các phiên bản bị yank chứa marker không thỏa mãn trong chế độ `uv pip compile --universal`.\n\n## Cách hoạt động\n- Tăng cường xác thực `uv.lock`: Kiểm tra đối chiếu yêu cầu phụ thuộc với các phiên bản gói đã khóa, xuất thông báo giải thích nguyên nhân khi `--locked` yêu cầu cập nhật, và báo cáo các phụ thuộc bị thiếu mục nhập gói.\n- Từ chối tệp wheel không chuẩn: Hệ thống chủ động loại bỏ các tệp wheel có kích thước nén trong ZIP data descriptor không khớp với central directory.\n- Tự động làm mới cache: Trình thông dịch sẽ làm mới lại thông tin lưu tạm ngay khi phát hiện có sự thay đổi ở libc, phiên bản hệ điều hành macOS hoặc tệp cấu hình `pyvenv.cfg`.\n- Điều chỉnh quy trình phân giải gói: Cho phép `uv sync --no-install-package` bỏ qua các gói không có bản phân phối tương thích; bỏ qua các wheel không tiếp cận được trước khi áp dụng kiểm tra hash trong `uv.lock`; ngăn chặn việc tái sử dụng phiên bản bị yank không phù hợp khi biên dịch đa nền tảng.\n- Hỗ trợ proxy index (tính năng xem trước): Cho phép sử dụng các proxy index nhưng vẫn duy trì tính tương thích và khả chuyển của lockfile đối với index gốc (upstream) nhờ cơ chế URL gói có thể đảo ngược (reversible artifact URLs).\n- Nâng cấp môi trường phụ trợ: Cập nhật các bản dựng CPython (3.11.18, 3.12.16, 3.13.18, 3.14.10, 3.15.2, 3.16.0a2), GraalPy 3.13.0 lên build 25.6.5 và cập nhật chứng chỉ gốc Mozilla thông qua `webpki-root-certs` bản 1.0.12.\n\n## Trade-off và hạn chế\n- Tính năng dùng proxy index đi kèm URL có thể đảo ngược hiện chỉ ở dạng bản xem trước (preview feature), chưa phải là cấu hình mặc định hoặc hoàn toàn ổn định.\n- Việc siết chặt kiểm tra cấu trúc nén ZIP khiến các tệp wheel không chuẩn (vốn có thể được bỏ qua trước đây) bị từ chối trực tiếp, đòi hỏi kho lưu trữ hoặc nguồn đóng gói phải chuẩn hóa lại tệp.\n- Cơ chế xác thực lockfile chặt chẽ hơn sẽ làm gián đoạn quy trình CI/CD dùng cờ `--locked` nếu tệp khóa trước đó tồn tại sai lệch về yêu cầu phụ thuộc chưa được cập nhật.\n- Mức độ ảnh hưởng chi tiết của lỗ hổng GHSA-vjvj-3m3f-fgmm chưa rõ do tài liệu phát hành không mô tả sâu về vector tấn công.\n\n## Điểm đáng chú ý\n- Bản phát hành tập trung vào an toàn chuỗi cung ứng thông qua vá lỗi GHSA-vjvj-3m3f-fgmm và tích hợp chứng thực GitHub Artifact Attestations, cho phép người dùng kiểm tra chữ ký số của các tệp nhị phân tải về qua lệnh `gh attestation verify`.\n- Cải thiện trải nghiệm gỡ lỗi của nhà phát triển khi cung cấp lý do cụ thể tại sao `uv.lock` bị từ chối bởi cờ `--locked`.\n- Bổ sung trích dẫn học thuật cho mô tả gốc của Minato về thuật toán ISOP trong tài liệu của dự án.",
+    "quality": "fulltext"
+  }
+]
