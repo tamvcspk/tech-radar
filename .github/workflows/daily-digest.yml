@@ -2,7 +2,10 @@ name: Daily digest
 
 on:
   schedule:
-    - cron: "30 23 * * *"  # 06:30 ICT (UTC+7)
+    # Chạy sớm (02:17 ICT) để độ trễ của cron GitHub không đẩy bản tin qua giờ sáng. Tránh phút :00 vì giờ đó tải cao.
+    - cron: "17 19 * * *"  # 02:17 ICT (UTC+7)
+    # Lần dự phòng: nếu lần đầu bị rớt hoặc lỗi thì chạy lại; nếu đã gửi rồi thì tự bỏ qua nhờ assets/last_sent_date.
+    - cron: "47 21 * * *"  # 04:47 ICT
   workflow_dispatch:
     inputs:
       dry_run:
@@ -110,6 +113,8 @@ jobs:
     if: needs.generate.outputs.has_digest == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: write  # để commit assets/last_sent_date sau khi gửi
     steps:
       - uses: actions/checkout@v6
 
@@ -133,6 +138,20 @@ jobs:
           # Lịch tự động luôn gửi thật. Chạy tay thì mặc định chỉ dry run.
           DRY_RUN: ${{ (github.event_name == 'schedule' || inputs.dry_run == false) && '0' || '1' }}
         run: python -m worker send
+
+      # Ghi ngày đã gửi (chỉ khi gửi thật) để lần chạy sau trong cùng ngày không sinh/gửi trùng.
+      - name: Commit last_sent_date
+        run: |
+          git config user.name "tech-radar-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/last_sent_date
+          if git diff --cached --quiet; then
+            echo "Không có thay đổi để commit."
+          else
+            git commit -m "sent: $(TZ=Asia/Ho_Chi_Minh date +%F)"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
 
   notify-failure:
     needs: [generate, deploy, telegram]

@@ -57,3 +57,16 @@ Nguồn gốc: bảng quyết định ở PLAN.md (gốc repo) mục 3 (2026-11-
 
 - Chọn: Python → `mkdocs build --strict` → commit → deploy Pages → Telegram.
 - Vì: bài hỏng không lọt vào `main`; link Telegram không bao giờ 404.
+
+## D-10 · 2026-11-26 · Chống gửi trùng và mốc `since` (P0)
+
+- Chọn: `assets/last_sent_date` (ICT) do job `telegram` ghi và commit sau khi gửi thật; `run` bỏ qua nếu ngày đó đã gửi, `send` cũng không gửi lại. Mốc lấy tin `since` = `last_success_at` trong `processed_urls.json`, kẹp trong [now − 72h, now], mặc định 24h khi chưa có.
+- Vì: có hai đường kích hoạt (homeserver + cron dự phòng) nên phải chặn trùng; ghi sau khi gửi (không phải sau khi sinh) để lần chạy lại vẫn gửi được khi Telegram lỗi.
+- Đánh đổi: `last_success_at` không tiến khi có mục bị bỏ vì lỗi LLM tạm thời, nên lần sau có thể xét lại một số mục đã thấy (dedup chặn phần đã đánh dấu). Job `telegram` cần `contents: write`.
+
+## D-11 · 2026-11-26 · Chạy sớm bằng cron GitHub thay cho trigger homeserver (P0)
+
+- Thay thế một phần D-10 (phần "hai đường kích hoạt: homeserver + cron dự phòng").
+- Chọn: bỏ trigger từ homeserver và PAT. Cron `schedule` chạy 02:17 ICT, thêm lần dự phòng 04:47 ICT. Lần dự phòng tự bỏ qua nhờ `assets/last_sent_date` nếu bản tin đã gửi.
+- Vì: người dùng ngủ lúc 02:00 nên đọc tin lúc 06:30 hay 02:00 như nhau. Độ trễ cron GitHub đã ghi nhận là 06:30 → 12:41 (PLAN mục 8.1); chạy sớm 4–5 giờ cho đệm đó mà không cần máy nào khác, token nào khác.
+- Đánh đổi: tin chỉ gồm mục đến 02:17 ICT; mục xuất hiện sau đó sang bản tin hôm sau (không mất nhờ `since`). Không còn đường kích hoạt độc lập với GitHub: nếu cả hai lần cron bị rớt thì ngày đó không có tin. Khi gặp lần đầu, cân nhắc lại trigger homeserver (`scripts/trigger-digest.sh` còn dùng được). Tin Telegram đến lúc 02:17, có thể gây thông báo ban đêm.

@@ -113,3 +113,33 @@ def test_prune_caps_active_items_and_archive_count(tmp_path):
     archives = sorted(p.name for p in tmp_path.glob("processed_urls-*.json.gz"))
     assert len(archives) == 2
     assert archives == ["processed_urls-2026-03.json.gz", "processed_urls-2026-11.json.gz"]
+
+
+def test_since_for_defaults_when_no_previous_run():
+    now = datetime(2026, 11, 26, 1, 0, tzinfo=timezone.utc)
+    since = dd.since_for(dd.empty_state(), now, timedelta(hours=24), timedelta(hours=72))
+    assert since == now - timedelta(hours=24)
+
+
+def test_since_for_uses_last_success_within_cap():
+    now = datetime(2026, 11, 26, 1, 0, tzinfo=timezone.utc)
+    state = {"items": {}, "last_success_at": (now - timedelta(hours=30)).isoformat()}
+    assert dd.since_for(state, now, timedelta(hours=24), timedelta(hours=72)) == now - timedelta(hours=30)
+
+
+def test_since_for_caps_at_72h_and_ignores_future_or_garbage():
+    now = datetime(2026, 11, 26, 1, 0, tzinfo=timezone.utc)
+    cap, default = timedelta(hours=72), timedelta(hours=24)
+    old = {"items": {}, "last_success_at": (now - timedelta(days=10)).isoformat()}
+    assert dd.since_for(old, now, default, cap) == now - cap
+    future = {"items": {}, "last_success_at": (now + timedelta(hours=5)).isoformat()}
+    assert dd.since_for(future, now, default, cap) == now
+    garbage = {"items": {}, "last_success_at": "không phải ngày"}
+    assert dd.since_for(garbage, now, default, cap) == now - default
+
+
+def test_last_sent_roundtrip(tmp_path):
+    path = tmp_path / "assets" / "last_sent_date"
+    assert dd.load_last_sent(path) is None
+    dd.save_last_sent(path, "2026-11-26")
+    assert dd.load_last_sent(path) == "2026-11-26"

@@ -10,6 +10,7 @@ from pathlib import Path
 import requests
 
 from .config import Settings
+from .dedup import load_last_sent, save_last_sent
 from .models import Article
 
 log = logging.getLogger(__name__)
@@ -83,10 +84,19 @@ def send_message(settings: Settings, text: str, dry_run: bool) -> bool:
     return bool(resp.json().get("ok"))
 
 
-def send_from_manifest(settings: Settings, manifest: Path, dry_run: bool) -> int:
+def send_from_manifest(
+    settings: Settings, manifest: Path, dry_run: bool, last_sent_path: Path | None = None
+) -> int:
+    """Gửi tin trong manifest. Gửi thật thành công thì ghi ngày vào `last_sent_path`;
+    ngày đó đã có trong file thì không gửi lại."""
     if not manifest.exists():
         print("Không có manifest Telegram, bỏ qua (ngày không có mục nào đạt ngưỡng).")
         return 0
     data = json.loads(manifest.read_text(encoding="utf-8"))
+    if last_sent_path is not None and load_last_sent(last_sent_path) == data["date"]:
+        print(f"Bản tin {data['date']} đã gửi trước đó, bỏ qua để không gửi trùng.")
+        return 0
     ok = send_message(settings, data["text"], dry_run=dry_run)
+    if ok and not dry_run and last_sent_path is not None:
+        save_last_sent(last_sent_path, data["date"])
     return 0 if ok else 1

@@ -62,3 +62,56 @@ def test_success_writes_digest_and_manifest(monkeypatch, tmp_path):
     digest = pipeline.run_generate(_settings(), FakeLLM(), None, now=NOW)
     assert digest is not None and (digest / "index.md").exists()
     assert (tmp_path / "out" / pipeline.TELEGRAM_MANIFEST).exists()
+
+
+def _state(tmp_path):
+    import json
+
+    return json.loads((tmp_path / "state.json").read_text(encoding="utf-8"))
+
+
+def test_since_uses_last_success_and_state_records_new_one(monkeypatch, tmp_path):
+    import json
+    from datetime import timedelta
+
+    _patch(monkeypatch, tmp_path, [])
+    seen = {}
+    monkeypatch.setattr(pipeline, "fetch_all", lambda s, since, t: seen.setdefault("since", since) and [])
+    last = NOW - timedelta(hours=40)
+    (tmp_path / "state.json").write_text(
+        json.dumps({"version": 1, "items": {}, "last_success_at": last.isoformat()}), encoding="utf-8"
+    )
+    pipeline.run_generate(_settings(), FakeLLM(), None, now=NOW)
+    assert seen["since"] == last
+    assert _state(tmp_path)["last_success_at"] == NOW.isoformat()
+
+
+def test_transient_error_keeps_old_last_success(monkeypatch, tmp_path):
+    import json
+    from datetime import timedelta
+
+    _patch(monkeypatch, tmp_path, [_candidate()])
+    last = NOW - timedelta(hours=20)
+    (tmp_path / "state.json").write_text(
+        json.dumps({"version": 1, "items": {}, "last_success_at": last.isoformat()}), encoding="utf-8"
+    )
+    pipeline.run_generate(_settings(), FakeLLM(TransientLLMError("429")), None, now=NOW)
+    assert _state(tmp_path)["last_success_at"] == last.isoformat()
+
+
+def test_already_sent_today_skips_everything(monkeypatch, tmp_path):
+    _patch(monkeypatch, tmp_path, [_candidate()])
+    last_sent = tmp_path / "last_sent_date"
+    monkeypatch.setattr(pipeline, "LAST_SENT_PATH", last_sent)
+    last_sent.write_text("2026-11-24\n", encoding="utf-8")  # NOW = 08:00 ICT ngày 2026-11-24
+    monkeypatch.setattr(pipeline, "fetch_all", lambda *a, **k: (_ for _ in ()).throw(AssertionError("không được fetch")))
+    assert pipeline.run_generate(_settings(), FakeLLM(), None, now=NOW) is None
+    assert not (tmp_path / "state.json").exists()
+
+
+def test_previous_day_sent_does_not_block(monkeypatch, tmp_path):
+    _patch(monkeypatch, tmp_path, [_candidate()])
+    last_sent = tmp_path / "last_sent_date"
+    monkeypatch.setattr(pipeline, "LAST_SENT_PATH", last_sent)
+    last_sent.write_text("2026-11-23\n", encoding="utf-8")
+    assert pipeline.run_generate(_settings(), FakeLLM(), None, now=NOW) is not None

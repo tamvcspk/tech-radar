@@ -87,6 +87,36 @@ def save_state(path: Path, state: dict) -> None:
     path.write_text(_dump_compact(state), encoding="utf-8")
 
 
+def load_last_sent(path: Path) -> str | None:
+    """Ngày (YYYY-MM-DD, giờ ICT) của bản tin đã gửi Telegram gần nhất, hoặc None."""
+    if not path.exists():
+        return None
+    return path.read_text(encoding="utf-8").strip() or None
+
+
+def save_last_sent(path: Path, date: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(date + "\n", encoding="utf-8")
+
+
+def since_for(state: dict, now: datetime, default: timedelta, cap: timedelta) -> datetime:
+    """Mốc bắt đầu lấy tin: lần chạy thành công gần nhất, kẹp trong [now - cap, now].
+
+    Chưa có lần chạy nào (hoặc giá trị hỏng) thì lùi `default` so với now.
+    """
+    raw = state.get("last_success_at")
+    if raw:
+        try:
+            last = datetime.fromisoformat(raw)
+        except ValueError:
+            last = None
+        if last is not None:
+            if last.tzinfo is None:
+                last = last.replace(tzinfo=timezone.utc)
+            return min(max(last, now - cap), now)
+    return now - default
+
+
 def _archive_expired(expired: dict[str, dict], archive_dir: Path, max_archives: int) -> None:
     """Xoay vòng mục hết hạn vào file nén processed_urls-YYYY-MM.json.gz và giới hạn số file lưu."""
     if not expired:

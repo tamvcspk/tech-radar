@@ -10,7 +10,7 @@ import requests
 
 from .config import Settings
 from .llm import GeminiProvider
-from .pipeline import OUT_DIR, TELEGRAM_MANIFEST, run_generate
+from .pipeline import LAST_SENT_PATH, OUT_DIR, TELEGRAM_MANIFEST, run_generate
 from .telegram import send_from_manifest
 
 
@@ -40,7 +40,9 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     dry_run = args.dry_run or settings.dry_run
-    return send_from_manifest(settings, OUT_DIR / TELEGRAM_MANIFEST, dry_run=dry_run)
+    return send_from_manifest(
+        settings, OUT_DIR / TELEGRAM_MANIFEST, dry_run=dry_run, last_sent_path=LAST_SENT_PATH
+    )
 
 
 if __name__ == "__main__":

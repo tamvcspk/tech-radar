@@ -6,15 +6,14 @@ Nguồn: PLAN.md ở gốc repo, mục 8.2, hàng P0.
 
 Mục tiêu: bản tin hằng ngày không còn phụ thuộc vào cron GitHub (lỗi ghi nhận ở PLAN mục 8.1: 06:30 đến 12:41).
 
-Xong khi: 7 ngày liên tiếp có bản tin trước 08:00 ICT, không gửi trùng trong một ngày, và cron `schedule` không còn là đường duy nhất để chạy.
+Xong khi: 7 ngày liên tiếp có bản tin trước 08:00 ICT và không gửi trùng trong một ngày. (Đã đổi theo D-11: không dùng homeserver; chạy sớm bằng cron GitHub để có đệm cho độ trễ.)
 
 ### Checklist
 
-- [ ] Tạo PAT fine-grained, chỉ quyền `actions:write` trên repo này; lưu trên homeserver (không commit).
-- [ ] Trigger `workflow_dispatch` từ homeserver theo lịch (khoảng 06:30 ICT).
-- [ ] Giữ `schedule` làm dự phòng, dời sang khoảng 08:00 ICT (`30 1 * * *` UTC = 08:30 ICT).
-- [ ] Thêm `assets/last_sent_date` để chặn gửi trùng trong một ngày.
-- [ ] Đổi `LOOKBACK` 24h cố định thành `since` = lần chạy thành công gần nhất, trần 72h.
+- [x] ~~PAT + trigger `workflow_dispatch` từ homeserver~~: bỏ, thay bằng chạy sớm (D-11). `scripts/trigger-digest.sh` giữ lại như đường dự phòng thủ công, không dùng.
+- [x] Dời `schedule` sang 02:17 ICT (`17 19 * * *` UTC) và thêm lần dự phòng 04:47 ICT (`47 21 * * *` UTC).
+- [x] Thêm `assets/last_sent_date` để chặn gửi trùng trong một ngày.
+- [x] Đổi `LOOKBACK` 24h cố định thành `since` = lần chạy thành công gần nhất, trần 72h.
 - [ ] Ghi kết quả 7 ngày đầu vào mục "Ghi chú" bên dưới.
 
 ## Contract

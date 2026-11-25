@@ -95,3 +95,45 @@ def test_send_message_network_error_hides_token(monkeypatch):
         telegram.send_message(_settings(), "hi", dry_run=False)
     assert "SECRET-TOKEN" not in str(err.value)
     assert err.value.__cause__ is None
+
+
+def _manifest(tmp_path, date="2026-11-26"):
+    import json
+
+    path = tmp_path / "telegram.json"
+    path.write_text(json.dumps({"date": date, "text": "hi"}), encoding="utf-8")
+    return path
+
+
+def test_real_send_records_last_sent_date(monkeypatch, tmp_path):
+    calls = []
+    monkeypatch.setattr(telegram, "send_message", lambda s, text, dry_run: calls.append(dry_run) or True)
+    last = tmp_path / "last_sent_date"
+    rc = telegram.send_from_manifest(_settings(), _manifest(tmp_path), dry_run=False, last_sent_path=last)
+    assert rc == 0 and calls == [False]
+    assert last.read_text(encoding="utf-8").strip() == "2026-11-26"
+
+
+def test_dry_run_does_not_record_last_sent_date(monkeypatch, tmp_path):
+    monkeypatch.setattr(telegram, "send_message", lambda s, text, dry_run: True)
+    last = tmp_path / "last_sent_date"
+    telegram.send_from_manifest(_settings(), _manifest(tmp_path), dry_run=True, last_sent_path=last)
+    assert not last.exists()
+
+
+def test_same_day_is_not_sent_twice(monkeypatch, tmp_path):
+    def fail(*a, **k):
+        raise AssertionError("không được gửi lần hai")
+
+    monkeypatch.setattr(telegram, "send_message", fail)
+    last = tmp_path / "last_sent_date"
+    last.write_text("2026-11-26\n", encoding="utf-8")
+    rc = telegram.send_from_manifest(_settings(), _manifest(tmp_path), dry_run=False, last_sent_path=last)
+    assert rc == 0
+
+
+def test_failed_send_does_not_record_date(monkeypatch, tmp_path):
+    monkeypatch.setattr(telegram, "send_message", lambda s, text, dry_run: False)
+    last = tmp_path / "last_sent_date"
+    rc = telegram.send_from_manifest(_settings(), _manifest(tmp_path), dry_run=False, last_sent_path=last)
+    assert rc == 1 and not last.exists()
