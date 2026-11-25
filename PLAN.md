@@ -122,3 +122,35 @@ SQLite/JSON (state)         fulltext → Markdown + tóm tắt   (gửi SAU khi 
 - Tên repo/site: `tech-radar`.
 - Repo public.
 - Số mục mỗi ngày: linh hoạt 0–7.
+
+## 8. Kế hoạch cải thiện (đề xuất 2026-11-25)
+
+Trạng thái: **đề xuất, chưa triển khai.** Thứ tự ưu tiên theo ROI và phụ thuộc.
+
+### 8.1 Lỗi đã ghi nhận: bản tin 06:30 đến lúc 12:41
+
+- Cron `30 23 * * *` UTC (06:30 ICT) đúng. Lần chạy theo lịch ngày 2026-11-25 được GitHub tạo lúc 05:37:59 UTC (12:37 ICT), trễ khoảng 6 giờ. Job chạy 4 phút.
+- GitHub chỉ cam kết "best effort" cho `schedule`. Có thể trễ nhiều giờ hoặc bị bỏ qua. Mục 4 ghi "trễ vài chục phút" là đánh giá quá lạc quan.
+- Lịch `schedule` của repo public có thể bị tắt sau 60 ngày không hoạt động (xem mục 4).
+
+**Why:** cron trên GitHub không đáng tin về giờ. Cần kích hoạt từ bên ngoài.
+**How to apply:** P0 bên dưới.
+
+### 8.2 Bảng kế hoạch
+
+| # | Việc | Công sức | Phụ thuộc |
+|---|---|---|---|
+| P0 | Kích hoạt `workflow_dispatch` từ homeserver (PAT fine-grained, chỉ `actions:write` trên repo này). Giữ `schedule` làm dự phòng, dời sang ~08:00 ICT. Thêm `assets/last_sent_date` để không gửi trùng. Đổi `LOOKBACK` 24h cố định thành `since = lần chạy thành công gần nhất`, trần 72h. | ~2h | — |
+| P1 | Nguồn mới: Lobste.rs JSON (`/hottest.json` hoặc `/t/<tag>.json`, có `score`); Show HN ≥100; HF Daily Papers qua `huggingface.co/api/daily_papers` (có `upvotes`); Simon Willison `/atom/entries/`; 2–3 blog kỹ thuật có RSS. Giới hạn tối đa 15 mục mỗi nguồn. Chủ đề chuyển sang enum cố định. | ~½ ngày | — |
+| P2 | Lọc tầng 1 không dùng LLM: repo tạo 7–30 ngày trước, còn push gần đây; kiểm tra `/languages` (tỷ lệ code), số commit sau ngày tạo, CI/tests (chỉ là điểm cộng nhẹ). Đưa số liệu và ~1.500 ký tự đầu README vào prompt Gatekeeper. Thêm red flags (thin wrapper, hype, số liệu không kiểm chứng) và green flags theo thuộc tính đo được (benchmark, ít dependency, nêu hạn chế). Không cộng điểm theo ngôn ngữ lập trình. | ~1 ngày | — |
+| P3 | Điều hướng năm/tháng/ngày trên site; trang tổng kết tháng (một lần LLM mỗi tháng). Giữ nguyên URL trang ngày vì link Telegram đã gửi. | ~½ ngày | — |
+| P4 | Telegram: một tin tiêu đề + mỗi mục một tin (`disable_notification` cho tin mục). Poller reaction (`allowed_updates=["message_reaction"]`) chạy trên homeserver, long polling 24/7. Hồ sơ sở thích theo chủ đề đưa vào prompt, giữ 1 trong 7 mục cho chủ đề ngoài sở thích. | ~1–2 ngày | P1 |
+| P5 | Backfill 2026: HN Algolia API + GitHub REST (releases, Search theo tháng). Sinh trang tổng kết tháng 1–10 bằng chung code với P3, không sinh bản tin ngày giả. Chạy theo từng tháng bằng `workflow_dispatch` có tham số `month`, chạy lại được, không gửi Telegram. Kiểm tra quota Gemini RPD trước khi chạy. | ~1 ngày | P3, P2 |
+
+**Không làm hoặc để sau:** ArXiv thô (cs.AI có hàng trăm bài mỗi ngày, LLM không đánh giá được qua tiêu đề); ByteByteGo (chủ yếu là sơ đồ đăng lại); `papers.takara.ai` (trung gian không chính thức); phân tích tài khoản stargazer; tầng "nửa năm" (chồng lên năm và tháng).
+
+### 8.3 Quyết định còn mở
+
+- Ngưỡng HN: giữ 300 hay hạ xuống 200 sau khi xem số lượng tin.
+- Poller reaction: chạy trên homeserver hay chấp nhận đọc `getUpdates` mỗi ngày (mất dữ liệu nếu lịch trễ quá 24h).
+- Anthropic engineering blog: kiểm tra xem có RSS chính thức không trước khi thêm.

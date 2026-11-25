@@ -3,6 +3,13 @@ site_description: Tin công nghệ tổng hợp tự động mỗi ngày, kèm b
 site_url: https://tamvcspk.github.io/tech-radar/
 repo_url: https://github.com/tamvcspk/tech-radar
 
+# File nội bộ của quy trình agent: không publish lên site công khai.
+exclude_docs: |
+  BRIEF.md
+  SPEC.md
+  DECISIONS.md
+  HANDOFF.md
+
 theme:
   name: material
   language: vi

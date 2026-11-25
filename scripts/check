@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+# Một lệnh kiểm tra duy nhất: test + build docs (giống hai bước CI).
+# Chỉ in phần lỗi. Thoát mã khác 0 nếu có bước nào lỗi.
+# Dùng: bash scripts/check
+set -u
+cd "$(dirname "$0")/.."
+
+# Python: ưu tiên venv của project (Windows rồi tới Linux/macOS), không có thì dùng python hệ thống.
+if [ -f .venv/Scripts/python.exe ]; then
+  PY=.venv/Scripts/python.exe
+elif [ -f .venv/bin/python ]; then
+  PY=.venv/bin/python
+else
+  PY=python
+fi
+
+fail=0
+run() {
+  local name="$1"; shift
+  local out
+  if out="$("$@" 2>&1)"; then
+    echo "ok   $name"
+  else
+    echo "FAIL $name"
+    printf '%s\n' "$out" | tail -n 60
+    fail=1
+  fi
+}
+
+# ---- Stack: Python (worker) + MkDocs (site). Lệnh giống .github/workflows/daily-digest.yml ----
+run test      "$PY" -m pytest -q
+run docs      "$PY" -m mkdocs build --strict
+# -------------------------------------------------------------------------------------------
+
+if [ "$fail" -ne 0 ]; then
+  echo "check: FAILED"
+  exit 1
+fi
+echo "check: OK"
