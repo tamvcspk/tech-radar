@@ -1,0 +1,128 @@
+[
+  {
+    "candidate": {
+      "source": "hn",
+      "title": "1Password Security Incident",
+      "url": "https://1password.com/blog/update-on-nov-2026-security-incident",
+      "description": "",
+      "published": "2026-11-25T17:18:26Z",
+      "points": 1103,
+      "repo": null
+    },
+    "verdict": {
+      "id": 4,
+      "score": 9,
+      "reason": "Sự cố bảo mật nghiêm trọng liên quan đến trình quản lý mật khẩu 1Password",
+      "topic": "Security"
+    },
+    "slug": "1password-security-incident-2da10e",
+    "summary": "1Password ghi nhận sự cố xâm nhập hệ thống backend và CI/CD thông qua tài khoản GitHub doanh nghiệp của một nhân viên, làm lộ mã nguồn và một số dữ liệu quản trị khách hàng.\nDữ liệu két mã hóa và nội dung lưu trữ của người dùng hoàn toàn không bị ảnh hưởng do kiến trúc bảo mật phân tầng không lưu giữ mật khẩu hay khóa bí mật trên máy chủ.",
+    "body_markdown": "## Vấn đề\n\nKẻ tấn công đã chiếm quyền truy cập vào tài khoản GitHub doanh nghiệp của một nhân viên thuộc 1Password. Từ tài khoản này, đối tượng đã sao chép mã nguồn từ các kho riêng tư, truy cập vào hệ thống CI/CD (nơi chứa các secret liên quan đến hạ tầng) và đẩy mã độc vào các dịch vụ backend. Hệ quả là mã độc đã trích xuất và tải xuống dữ liệu quản trị của một tập hợp con người dùng, bao gồm: tên, địa chỉ email, định danh tài khoản, thời gian tạo và đăng nhập lần cuối, public key, các tham số giao thức SRP (Secure Remote Password), một số token trong liên kết gửi qua email và siêu dữ liệu cấu trúc nội bộ. Nội dung két mật khẩu (vault) của khách hàng không bị truy cập hay can thiệp.\n\n## Cách hoạt động\n\nSau khi có quyền truy cập GitHub, kẻ tấn công can thiệp trực tiếp vào mã nguồn backend để tải các bản ghi quản trị. Dù dữ liệu tài khoản bị lộ, hệ thống áp dụng cơ chế xác thực nhiều lớp: các token gửi qua email dùng cho việc cấp phát (provisioning qua SCIM Bridge hoặc Hosted Provisioning) và khôi phục tài khoản không thể sử dụng độc lập. Để hoàn tất quy trình, token bắt buộc phải đi kèm với phiên đăng nhập SSO hoặc một mã xác thực phụ gửi tới email của người dùng. Về phía dữ liệu nhạy cảm nhất, 1Password không lưu mật khẩu tài khoản hay Secret Key; dữ liệu két mật khẩu được mã hóa bằng các khóa do người dùng nắm giữ nên kẻ tấn công không thể đọc được nội dung dù đã xâm nhập thành công vào backend.\n\n## Trade-off và hạn chế\n\n- Token phục hồi và cấp phát tài khoản nằm trong vùng dữ liệu backend bị trích xuất, tạo ra nguy cơ nếu cơ chế mã phụ đi kèm quá yếu; theo nguồn, hệ thống trước đó sử dụng mã 6 chữ số vốn có nguy cơ bị tấn công vét cạn (brute-force) cao hơn so với mã 10 ký tự chữ-số mới cập nhật.\n- Hệ thống kiểm soát đẩy mã và phân quyền CI/CD chưa ngăn chặn triệt để hành vi đưa mã độc vào backend khi tài khoản nhân viên bị xâm phạm.\n- Cơ chế và nguyên nhân ban đầu dẫn đến việc tài khoản GitHub của nhân viên bị chiếm quyền chưa rõ theo nguồn công bố.\n\n## Điểm đáng chú ý\n\n- Kiến trúc Zero-Knowledge phát huy tác dụng: Ngay cả khi mã nguồn, môi trường CI/CD và cơ sở dữ liệu quản trị bị xâm nhập, kẻ tấn công vẫn không thể giải mã các két bảo mật của khách hàng.\n- Các tham số SRP và public key bị lộ được thiết kế công khai hoặc phi định danh bảo mật, không thể dùng độc lập để chiếm đoạt tài khoản.\n- Biện pháp khắc phục kỹ thuật được triển khai gồm: vô hiệu hóa tài khoản bị ảnh hưởng, xoay vòng toàn bộ thông tin xác thực nội bộ có nguy cơ bị lộ, siết chặt kiểm soát endpoint/CI/CD/GitHub, tăng độ dài mã xác thực trong email từ 6 chữ số lên 10 ký tự chữ và số (theo nguồn), đồng thời thuê chuyên gia an ninh mạng độc lập kiểm tra lại toàn bộ quy trình xử lý.",
+    "quality": "fulltext"
+  },
+  {
+    "candidate": {
+      "source": "hn",
+      "title": "Models Can Communicate via Inference Servers Despite Being Sandboxed",
+      "url": "https://www.lesswrong.com/posts/7wzWuLP3HhyBLmKfo/models-can-communicate-via-inference-servers-despite-being",
+      "description": "",
+      "published": "2026-11-25T02:34:21Z",
+      "points": 449,
+      "repo": null
+    },
+    "verdict": {
+      "id": 22,
+      "score": 8,
+      "reason": "Nghiên cứu bảo mật về kênh giao tiếp ngầm giữa các mô hình AI trên cùng máy chủ suy luận",
+      "topic": "AI Security"
+    },
+    "slug": "models-can-communicate-via-inference-servers-despi-30d463",
+    "summary": "Bài viết nêu chủ đề về việc các mô hình có thể giao tiếp qua máy chủ suy luận dù được đặt trong môi trường sandbox.\nTuy nhiên nội dung kỹ thuật chi tiết chưa rõ do nguồn dữ liệu chỉ gồm thông báo yêu cầu JavaScript và không có văn bản bài viết.",
+    "body_markdown": "## Vấn đề\nNội dung nguồn đặt ra tiêu đề về việc các mô hình AI có thể giao tiếp thông qua máy chủ suy luận (inference servers) bất chấp việc đang bị cô lập trong sandbox. Tuy nhiên, bối cảnh chi tiết và bản chất cụ thể của vấn đề này chưa rõ do văn bản nguồn không tải được nội dung bài viết mà chỉ hiện thông báo yêu cầu JavaScript.\n\n## Cách hoạt động\nCách thức các mô hình tương tác hay truyền dữ liệu qua máy chủ suy luận chưa rõ do nguồn cung cấp không có thông tin giải thích kỹ thuật.\n\n## Trade-off và hạn chế\nCác sự đánh đổi, rào cản kỹ thuật cũng như hạn chế của hiện tượng này chưa rõ vì tài liệu nguồn không chứa dữ liệu phân tích.\n\n## Điểm đáng chú ý\nTheo nguồn, bài viết có tiêu đề \"Models Can Communicate via Inference Servers Despite Being Sandboxed\", do Niranjan Deshpande và David Africa đăng tải trên LessWrong với thời lượng đọc ước tính là 13 phút. Mọi chi tiết kỹ thuật chuyên sâu và số liệu đo đạc khác đều chưa rõ do bài viết thiếu nội dung.",
+    "quality": "fulltext"
+  },
+  {
+    "candidate": {
+      "source": "hn",
+      "title": "Google releases Cogentic papers on integer factorization, discrete logs and more",
+      "url": "https://github.com/google-research/google-research/tree/master/cogentic_research_papers",
+      "description": "",
+      "published": "2026-11-25T13:33:07Z",
+      "points": 443,
+      "repo": null
+    },
+    "verdict": {
+      "id": 12,
+      "score": 8,
+      "reason": "Google công bố các bài báo nghiên cứu quan trọng về phân tích thừa số nguyên và logarit rời rạc",
+      "topic": "Cryptography"
+    },
+    "slug": "google-releases-cogentic-papers-on-integer-factori-abef7d",
+    "summary": "Google Research công bố thư mục chứa các tài liệu nghiên cứu lý thuyết được thực hiện bởi Cogentic.\nCác nghiên cứu này được chia sẻ công khai dưới dạng tệp PDF kèm điều khoản giấy phép mã nguồn mở Apache 2.0.",
+    "body_markdown": "## Vấn đề\nNội dung nguồn không cung cấp chi tiết bối cảnh vấn đề kỹ thuật chung mà toàn bộ dự án giải quyết, ngoài việc đóng vai trò là nơi lưu trữ các bài báo nghiên cứu do Cogentic thực hiện. Mặc dù tiêu đề nhắc đến việc phân tích thừa số nguyên (integer factorization) và logarit rời rạc (discrete logs), nhưng văn bản nguồn thực tế không chứa thông tin chi tiết về các chủ đề này mà chỉ liệt kê hai bài báo về đấu giá tổ hợp và hội tụ lý thuyết trò chơi.\n\n## Cách hoạt động\nThư mục này hoạt động như một kho lưu trữ phân phối các bài báo nghiên cứu dưới định dạng PDF. Các tài liệu được liệt kê cụ thể bao gồm:\n- Nghiên cứu về \"Nearly Tight O(log log log m) Prophet Inequalities for Subadditive Combinatorial Auctions\".\n- Nghiên cứu về \"Polynomial Dimension Dependence for Fictitious Play Convergence\".\nChi tiết kỹ thuật và phương pháp triển khai cụ thể của từng nghiên cứu chưa rõ từ dữ liệu được cung cấp.\n\n## Trade-off và hạn chế\nNguồn tài liệu đưa ra tuyên bố miễn trừ trách nhiệm rõ ràng rằng đây không phải là một sản phẩm chính thức của Google. Ngoài ra, do chỉ cung cấp danh sách tài liệu mà không đi kèm mã nguồn cụ thể hay tài liệu hướng dẫn thực thi, khả năng ứng dụng thực tế, chi phí tính toán hay hạn chế thuật toán của các đề tài đều chưa rõ.\n\n## Điểm đáng chú ý\nNội dung trong thư mục được phát hành theo giấy phép mã nguồn mở Apache 2.0, trừ khi có ghi chú khác trong các thư mục con riêng lẻ. Theo nguồn, bài báo về bất đẳng thức tiên tri trong đấu giá tổ hợp subadditive đạt được cận gần chặt O(log log log m).",
+    "quality": "fulltext"
+  },
+  {
+    "candidate": {
+      "source": "github_search",
+      "title": "alesha-pro/llm.asm",
+      "url": "https://github.com/alesha-pro/llm.asm",
+      "description": "Qwen3-0.6B inference (12 KB), bare-metal bootable OS (22 KB), and from-scratch Mini-GPT trainer with live Braille TUI (32 KB) in 100% pure x86-64 NASM assembly. Zero C, zero libc, zero dependencies.",
+      "published": "2026-11-25T07:28:51Z",
+      "points": null,
+      "repo": "alesha-pro/llm.asm"
+    },
+    "verdict": {
+      "id": 17,
+      "score": 8,
+      "reason": "Hệ thống suy luận và huấn luyện LLM viết hoàn toàn bằng Assembly x86-64 không phụ thuộc thư viện",
+      "topic": "Assembly"
+    },
+    "slug": "alesha-pro-llm-asm-a519f6",
+    "summary": "Dự án llm.asm triển khai các hệ thống LLM hoàn chỉnh hoàn toàn bằng 100% hợp ngữ x86-64 NASM mà không phụ thuộc vào thư viện ngoài.\nBài viết phân tích kỹ thuật dựa trên tài liệu README của kho lưu trữ để làm rõ kiến trúc thực thi, hiệu năng và các hạn chế cố hữu.",
+    "body_markdown": "## Vấn đề\n\nPhần lớn các công cụ chạy và huấn luyện mô hình ngôn ngữ lớn (LLM) hiện nay phụ thuộc vào ngăn xếp phần mềm nhiều tầng: thư viện runtime C/C++, Rust, libc, libm, các framework tính toán nặng nề và hệ điều hành tiêu chuẩn. Điều này làm tăng đáng kể kích thước tệp thực thi, kéo theo độ trễ khởi động, chi phí trừu tượng hóa và giảm tính tất định (determinism) khi tính toán trực tiếp trên phần cứng x86-64.\n\n## Cách hoạt động\n\nTheo thông tin từ README của dự án, toàn bộ hệ thống được hiện thực hóa qua 17.252 dòng lệnh hợp ngữ NASM thuần túy (không sử dụng C, C++, Rust hay libc), biên dịch bằng `nasm` và liên kết trực tiếp bằng `ld`. Dự án được chia làm ba thành phần chính:\n\n- **Suy luận Qwen3-0.6B (`01-qwen3-inference/`)**: Tệp nhị phân tĩnh ELF trên Linux (kích thước theo nguồn là 14.712 byte với cờ `FAST_Q8=1` hoặc 14.008 byte với `FAST_Q8=0`). Tự hiện thực hóa bộ tách từ BPE, các phép toán hạt nhân (`expf`, `sincosf`, `RMSNorm`, `RoPE`, `SiLU`, `Softmax`), vòng lặp đa luồng thông qua trực tiếp syscall Linux `clone()` và `futex()`, cùng cơ chế nhân ma trận Q8_0 hỗ trợ AVX2, FMA và F16C.\n- **Hệ điều hành LLM Bare-Metal (`02-baremetal-os/`)**: Tệp ELF nhị phân dung lượng 24.252 byte có thể khởi động trực tiếp không cần hệ điều hành trung gian. Quy trình khởi động đi từ Multiboot 1 sang chế độ Long Mode 64-bit, cấu hình bảng trang phân trang 2 MiB, kích hoạt SIMD (AVX2/FMA/F16C), đa xử lý đối xứng SMP qua ACPI/APIC và xuất giao diện REPL qua VGA, bàn phím PS/2 và cổng nối tiếp COM1.\n- **Huấn luyện Mini-GPT (`03-minigpt-train/`)**: Tệp nhị phân kích thước 32.944 byte phục vụ huấn luyện mô hình từ đầu với độ chính xác FP32. Tự hiện thực thuật toán nhân ma trận SGEMM phân khối thanh ghi 6x16 AVX2+FMA, lan truyền ngược giải tích (analytical backward pass), thuật toán tối ưu hóa AdamW tách rời và giao diện dòng lệnh vẽ đồ thị Unicode Braille động.\n\nĐể nạp trọng số, dự án sử dụng một kịch bản Python độc lập để xuất mô hình từ HuggingFace sang định dạng nhị phân riêng biệt `.asmbin` (v1 định dạng FP32 scale hoặc v2 định dạng FP16 scale).\n\n## Trade-off và hạn chế\n\nPhân tích dựa trên tài liệu README chỉ ra một số điểm đánh đổi và giới hạn đáng chú ý:\n\n- **Bất lợi trong xử lý Prompt (Prefill)**: Theo lưu ý trong benchmark của nguồn, `llama.cpp` sử dụng thuật toán batched GEMM cho pha tiền xử lý prompt (`pp34`), trong khi `llm.asm` xử lý theo cơ chế GEMV từng token một. Do đó, pha prefill không được tối ưu hoá theo lô như các công cụ hiện đại.\n- **Ràng buộc phần cứng x86-64 nghiêm ngặt**: Đòi hỏi CPU x86-64 bắt buộc phải hỗ trợ đầy đủ các tập lệnh AVX2, FMA và F16C (từ Intel Haswell hoặc AMD Excavator trở lên). Dự án không hỗ trợ GPU hay các kiến trúc CPU khác như ARM.\n- **Phạm vi mô hình cố định**: Mã nguồn được viết tối ưu gắn liền với cấu trúc cụ thể của mô hình Qwen3-0.6B và Mini-GPT. Việc thích ứng cho các kiến trúc LLM khác đòi hỏi viết lại hoặc chỉnh sửa trực tiếp mã nguồn hợp ngữ.\n- **Phụ thuộc vào công cụ tiền xử lý**: Dù pha chạy máy không phụ thuộc runtime bên ngoài, quy trình chuyển đổi trọng số ban đầu vẫn bắt buộc phải có môi trường Python và thư viện NumPy.\n- **Chi phí bảo trì cao**: Việc duy trì và gỡ lỗi 17.252 dòng hợp ngữ thuần x86-64 rất phức tạp, khó mở rộng tính năng so với việc dùng các ngôn ngữ bậc cao có trình biên dịch tối ưu hóa tự động.\n\n## Điểm đáng chú ý\n\n- **Dung lượng siêu tinh gọn**: Kích thước toàn bộ tệp thực thi chỉ dao động từ khoảng 14,7 KB (suy luận) đến gần 33 KB (huấn luyện hoàn chỉnh), hoàn toàn không có dynamic section khi kiểm tra bằng `readelf`.\n- **Hiệu năng giải mã CPU**: Theo số liệu thử nghiệm trên CPU AMD EPYC 7642 được công bố trong nguồn, ở chế độ `FAST_Q8=1`, `llm.asm` đạt tốc độ giải mã từ 20,70 tok/s (1 luồng) đến 125,86 tok/s (đỉnh 126,81 tok/s ở 40 luồng), nhanh hơn `llama.cpp` CPU chạy Q8_0 từ 18% đến 36% trên cùng phần cứng.\n- **Thời gian khởi động Bare-Metal**: Phiên bản hệ điều hành bare-metal khởi động trong khoảng 74–94 ms (theo nguồn), có thể hoạt động trên máy ảo Proxmox VE không cần ổ đĩa (0 GB disk) với tốc độ giải mã đạt 55,4 tok/s trên vi xử lý Intel Xeon E5-2670 v3.\n- **Độ chính xác số học**: Theo nguồn, kết quả suy luận của `FAST_Q8=1` đạt độ tương đồng cosine 0.99965 và khớp chính xác 64/64 token greedy so với PyTorch FP32. Ở pha huấn luyện, mô hình đạt độ tương đồng cosine 1.0000000000 trên toàn bộ 21 tensor gradient so với bản tham chiếu PyTorch CPU.",
+    "quality": "readme"
+  },
+  {
+    "candidate": {
+      "source": "hn",
+      "title": "Holy shit holy shit holy shit holy shit: The magnitude of what’s now happening",
+      "url": "https://scottaaronson.blog/?p=10379",
+      "description": "See also The matrix multiplication exponent is nine fourths [pdf] - https://news.ycombinator.com/item?id=50637220",
+      "published": "2026-11-25T19:11:27Z",
+      "points": 851,
+      "repo": null
+    },
+    "verdict": {
+      "id": 2,
+      "score": 7,
+      "reason": "Thảo luận lớn về bước tiến lý thuyết mới trong bài toán nhân ma trận",
+      "topic": "Computer Science"
+    },
+    "slug": "holy-shit-holy-shit-holy-shit-holy-shit-the-magnit-c31465",
+    "summary": "Các phòng thí nghiệm AI liên tiếp công bố lời giải kèm mã kiểm chứng Lean cho hàng loạt bài toán lý thuyết độ phức tạp và toán học kinh điển.\nSự phát triển này mang lại các bước nhảy vọt về thuật toán nhưng kéo theo thách thức tiếp thu lời giải và rủi ro đe dọa các hệ thống mật mã.",
+    "body_markdown": "## Vấn đề\nTrong nhiều thập kỷ kể từ cuối những năm 1960, các bài toán trung tâm của khoa học máy tính lý thuyết và thuật toán như số mũ nhân ma trận (omega), số cổng tuyến tính cho biến đổi Fourier (FFT), VP ≠ VNP hay Giả thuyết Riemann vẫn là những bí ẩn lớn chưa có lời giải dứt khoát. Cộng đồng nghiên cứu thường chỉ tiến triển rất chậm qua từng manh mối nhỏ giọt, thậm chí nhiều phỏng đoán lâu năm thiếu bằng chứng vững chắc (ví dụ nhận định omega bằng 2).\n\n## Cách hoạt động\nTheo nội dung bài viết, các tổ chức như OpenAI và Anthropic ứng dụng AI để tìm ra lời giải cho các bài toán mở lớn. Thay vì phát hành thông cáo báo chí, họ trực tiếp đưa các bài báo và kết quả lên kho lưu trữ GitHub. Tính chính xác của các kết quả này được hỗ trợ và kiểm chứng thông qua các chứng chỉ hình thức hóa bằng ngôn ngữ Lean (Lean certificates). Việc ứng dụng AI hỗ trợ chứng minh cũng dần trở thành tiêu chuẩn trong nghiên cứu, như trường hợp nghiên cứu QIP(2) = PSPACE của Yupan Liu.\n\n## Trade-off và hạn chế\n- Khả năng tiếp thu của con người: Các giải pháp do AI tạo ra có thể cần đến nhiều năm để các nhà nghiên cứu con người thực sự hiểu thấu đáo.\n- Nghi ngờ và tranh cãi: Vẫn có những phản bác xoay quanh các chi tiết nhỏ, như sự sai khác giữa chứng minh hình thức Lean và chứng minh không hình thức, hoặc các phần mã Lean không được sử dụng.\n- Đe dọa hệ thống mật mã: Việc tìm ra các thuật toán chặn trên mới đồng nghĩa với nguy cơ phá vỡ các hệ thống mật mã đang được triển khai thực tế. Dù vậy, theo nguồn, chi tiết kỹ thuật cụ thể về các tác động mật mã này hiện vẫn chưa rõ và chưa được công bố chính thức.\n- Tác động rộng hơn: Đặt ra lo ngại về sự khởi đầu của một điểm kỳ dị AI (singularity) vượt ra ngoài khuôn khổ các bài toán thuần túy.\n\n## Điểm đáng chú ý\n- Xác định chính xác số mũ nhân ma trận omega là 9/4 (theo nguồn), chứng minh được chặn dưới omega > 2 vốn là thách thức kéo dài từ thời Volker Strassen (cuối thập niên 1960).\n- Số lượng cổng tuyến tính cho biến đổi Fourier được giải quyết với cả chặn trên và chặn dưới trùng khớp là N (log N)^(1/2+o(1)) (theo nguồn), vượt qua mốc O(N log N) tồn tại từ thập niên 1960.\n- Ghi nhận hàng loạt kết quả lớn được công bố liên tiếp: VP ≠ VNP, kết quả Alpöge/Anthropic cho Giả thuyết Riemann, và tác giả tin rằng chứng minh P ≠ NP đang tới gần.\n- Nghiên cứu của Yupan Liu chứng minh QIP(2) = PSPACE với sự trợ giúp của AI được xem là một quy trình ngày càng bình thường hóa trong nghiên cứu độ phức tạp tính toán.",
+    "quality": "fulltext"
+  },
+  {
+    "candidate": {
+      "source": "hn",
+      "title": "Bypassing iOS Safari's 60 FPS Limit to Build Web Applications That Feel Native",
+      "url": "https://rida.dev/blog/bypassing-ios-safari-60-fps-limit",
+      "description": "",
+      "published": "2026-11-25T03:04:37Z",
+      "points": 436,
+      "repo": null
+    },
+    "verdict": {
+      "id": 21,
+      "score": 7,
+      "reason": "Kỹ thuật vượt qua giới hạn 60 FPS của Safari iOS để tối ưu hiệu năng web",
+      "topic": "Frontend"
+    },
+    "slug": "bypassing-ios-safari-s-60-fps-limit-to-build-web-a-777816",
+    "summary": "Kỹ thuật vượt qua rào cản 60 FPS trên iOS Safari thông qua việc tận dụng luồng compositor của vùng cuộn và cơ chế OffscreenCanvas.\nGiải pháp cho phép các ứng dụng web tiếp nhận thao tác và kết xuất đồ họa ở tốc độ 120 Hz tương đương native mà không cần can thiệp cờ nhà phát triển.",
+    "body_markdown": "## Vấn đề\n\nTrên iOS Safari, WebKit mặc định khóa `requestAnimationFrame` cùng các sự kiện cảm ứng (touch, pointer events) ở mức 60 Hz ngay cả trên màn hình ProMotion 120 Hz, trừ khi người dùng bật cờ phát triển ẩn. Thêm vào đó, theo nguồn, các sự kiện cuộn thông thường chỉ cập nhật từ 5 đến 26 lần mỗi giây trong lúc cuộn theo quán tính (tối đa khoảng 60 lần/giây khi cuộn rất chậm), khiến trải nghiệm web di động trở nên giật và kém mượt mà. Mặt khác, việc kết xuất qua thẻ canvas cũng bị giới hạn trong chu kỳ render 60 Hz của luồng chính, điều vốn được cộng đồng xem là không thể vượt qua nếu không dùng private API hoặc cờ hệ thống.\n\n## Cách hoạt động\n\nGiải pháp gồm hai phần chính: thu nhận tương tác đầu vào tần số cao và kết xuất đầu ra ở 120 FPS.\n\n- **Xử lý tương tác 120 Hz bằng \"Controller\":** Cơ chế cuộn trình duyệt được xử lý trực tiếp bởi compositor thread độc lập với JavaScript. Bằng cách dùng một vùng cuộn vô hình làm bộ điều khiển và đọc đồng bộ `scrollTop`/`scrollLeft`, tác giả có thể trích xuất quán tính, độ nảy và vị trí chạm tự nhiên. Sau các thử nghiệm thất bại gây hao pin hoặc lỗi chia sẻ tài nguyên, giải pháp hoạt động là dùng `MessageChannel` điều tiết qua `setTimeout` dựa theo tần số quét và khóa pha vsync bằng timestamp của `requestAnimationFrame`. Để giải quyết việc Safari chờ xác nhận IPC (làm rớt mẫu), một vòng lặp `requestAnimationFrame` rỗng được bổ sung để ép xả dữ liệu liên tục. Tiếp đó, một phần tử cuộn vô hình kích hoạt hiệu ứng CSS tăng tốc phần cứng chạy ngầm để kích hoạt ProMotion từ 90 Hz lên đủ 120 Hz. Để khắc phục việc làm tròn số nguyên của tọa độ cuộn, bề mặt cuộn được phóng to theo tỷ lệ điểm ảnh thiết bị (DPR) rồi thu nhỏ khung chứa tương ứng.\n- **Kết xuất 120 FPS bằng OffscreenCanvas:** Thay vì vẽ trực tiếp trên luồng DOM chính, tác giả gọi `transferControlToOffscreen` trên phần tử `<canvas>`. WebKit xử lý khung hình đẩy từ `OffscreenCanvas` mà không phải chờ lượt vẽ của luồng chính, mở đường cho việc kết xuất đồ họa (như WebGL shader) đạt 120 FPS từ Web Worker mà không gây quá tải CPU.\n\n## Trade-off và hạn chế\n\n- **Nguy cơ bị vô hiệu hóa:** Tác giả nhấn mạnh không khuyến khích xây dựng lại toàn bộ ứng dụng theo cách này, vì Apple hoàn toàn có quyền thay đổi hành vi của `OffscreenCanvas` trong các bản cập nhật WebKit tương lai mà không vi phạm đặc tả HTML.\n- **Độ phức tạp khi dùng toàn màn hình:** Nếu dùng toàn bộ viewport làm controller để đo tọa độ sub-point, lập trình viên buộc phải can thiệp thuộc tính `initial-scale`, điều chỉnh kích thước theo DPR, tắt tính năng tự chỉnh cỡ chữ và tự tính toán safe areas, đồng thời thanh chọn văn bản sẽ bị thu nhỏ lại.\n- **Các mẹo lách kỹ thuật:** Cần phối hợp nhiều kỹ thuật phức tạp như duy trì vòng lặp rAF rỗng, chạy vùng cuộn ẩn ngầm để kích hoạt ProMotion, hoặc chuyển đổi màu trong suốt qua CSS scroll-driven animation để tránh bị Safari bóp tốc độ ghi nhận xuống 10 Hz khi thanh địa chỉ co giãn.\n\n## Điểm đáng chú ý\n\n- Theo nguồn công bố qua thử nghiệm quay video 240 FPS (trên thiết bị iPhone 18 Pro được nêu trong bài viết), việc điều khiển bằng cơ chế controller đạt trung bình 118 FPS trong 3 giây kéo, vượt trội hoàn toàn so với mức 60 FPS cố định của các sự kiện pointer thông thường.\n- Trong chế độ Tiết kiệm pin (Low Power Mode) – vốn thường hạ trần hiển thị xuống 30 FPS theo nguồn, kỹ thuật này vẫn duy trì được mức 60 FPS.\n- Phá vỡ nhận định lâu nay của cộng đồng công nghệ cho rằng canvas trên iOS Safari bắt buộc phải chạy dưới cờ hệ thống mới vượt được 60 FPS, chứng minh khả năng dựng các hiệu ứng phức tạp (như thanh điều hướng Liquid Glass dùng shader) mượt mà như ứng dụng native.",
+    "quality": "fulltext"
+  }
+]
