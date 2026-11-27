@@ -70,3 +70,15 @@ Nguồn gốc: bảng quyết định ở PLAN.md (gốc repo) mục 3 (2026-11-
 - Chọn: bỏ trigger từ homeserver và PAT. Cron `schedule` chạy 02:17 ICT, thêm lần dự phòng 04:47 ICT. Lần dự phòng tự bỏ qua nhờ `assets/last_sent_date` nếu bản tin đã gửi.
 - Vì: người dùng ngủ lúc 02:00 nên đọc tin lúc 06:30 hay 02:00 như nhau. Độ trễ cron GitHub đã ghi nhận là 06:30 → 12:41 (PLAN mục 8.1); chạy sớm 4–5 giờ cho đệm đó mà không cần máy nào khác, token nào khác.
 - Đánh đổi: tin chỉ gồm mục đến 02:17 ICT; mục xuất hiện sau đó sang bản tin hôm sau (không mất nhờ `since`). Không còn đường kích hoạt độc lập với GitHub: nếu cả hai lần cron bị rớt thì ngày đó không có tin. Khi gặp lần đầu, cân nhắc lại trigger homeserver (`scripts/trigger-digest.sh` còn dùng được). Tin Telegram đến lúc 02:17, có thể gây thông báo ban đêm.
+
+## D-12 · 2026-11-26 · Tin Telegram gửi bình thường, không im lặng
+
+- Chọn: giữ `sendMessage` mặc định, không dùng `disable_notification`.
+- Vì: người dùng quyết định không cần gửi im lặng.
+
+## D-13 · 2026-11-27 · Cron mỗi giờ 02:17–07:17 ICT, chạy tay khi cần (P0)
+
+- Thay thế D-11 (phần lịch cron; vẫn không dùng homeserver).
+- Chọn: một lịch `17 19-23,0 * * *` (6 lần mỗi đêm) thay cho hai lần 02:17 và 04:47. Vẫn serverless, không PAT, không dịch vụ ngoài. Nếu sáng không có tin thì vào GitHub chạy tay `workflow_dispatch` (bỏ chọn dry_run).
+- Vì: ngày 2026-11-27 cả hai lần cron đều trễ 6–7 giờ (chạy lúc 09:16 và 10:49 ICT), bản tin gửi 09:18 ICT. Nhiều lần chạy tăng cơ hội có một lần đến sớm; `last_sent_date` đã kiểm chứng chặn gửi trùng.
+- Đánh đổi: nếu GitHub hoãn cả repo cùng một lúc thì nhiều lần cũng không giúp. Mỗi lần bị bỏ qua tốn khoảng 20–25 giây Actions (repo public, miễn phí). Quyết định phụ thuộc dữ liệu 3–4 ngày tới; nếu vẫn trễ thì mới xét dịch vụ ngoài gọi `workflow_dispatch`.

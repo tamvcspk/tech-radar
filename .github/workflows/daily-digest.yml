@@ -2,10 +2,9 @@ name: Daily digest
 
 on:
   schedule:
-    # Chạy sớm (02:17 ICT) để độ trễ của cron GitHub không đẩy bản tin qua giờ sáng. Tránh phút :00 vì giờ đó tải cao.
-    - cron: "17 19 * * *"  # 02:17 ICT (UTC+7)
-    # Lần dự phòng: nếu lần đầu bị rớt hoặc lỗi thì chạy lại; nếu đã gửi rồi thì tự bỏ qua nhờ assets/last_sent_date.
-    - cron: "47 21 * * *"  # 04:47 ICT
+    # Chạy mỗi giờ từ 02:17 đến 07:17 ICT (D-13). Cron GitHub có thể trễ hoặc rớt hàng giờ, nên đặt nhiều lần;
+    # lần đầu gửi xong ghi assets/last_sent_date, các lần sau trong ngày tự bỏ qua. Tránh phút :00 vì giờ đó tải cao.
+    - cron: "17 19-23,0 * * *"  # 02:17, 03:17, ..., 07:17 ICT (UTC+7)
   workflow_dispatch:
     inputs:
       dry_run:
